@@ -1,0 +1,637 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="format-detection" content="email=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <title>数字经销平台统采共配双层拍卖机制设计 - 中国知网</title>
+    <link rel="shortcut icon" href="https://piccache.cnki.net/nxgp/kcms/20250904r/images/gb/kcms8/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="https://piccache.cnki.net/nxgp/kcms/20250904r/css/gb/kcms8/layout3.css">
+    <link rel="stylesheet" type="text/css" href="https://piccache.cnki.net/nxgp/kcms/20250904r/css/gb/kcms8/global.css">
+    <script type="text/javascript" src="https://piccache.cnki.net/nxgp/kcms/20250904r/js/jquery-3.7.1.min.js"></script>
+    <script type="text/javascript" src="https://piccache.cnki.net/nxgp/kcms/20250904r/js/apidata/nxgpdata-stucture-analysis-1.0.js"></script>
+    <script type="text/javascript" src="https://piccache.cnki.net/nxgp/kcms/20250904r/js/common.js"></script>
+    <script type="text/javascript" src="https://piccache.cnki.net/nxgp/kcms/20250904r/js/detail.js"></script>
+    <script type="text/javascript" src="https://piccache.cnki.net/nxgp/kcms/20250904r/js/kajax.js"></script>
+    <script type="text/javascript" src="https://piccache.cnki.net/nxgp/kcms/20250904r/js/layer.js"></script><link rel="stylesheet" href="https://piccache.cnki.net/nxgp/kcms/20250904r/js/theme/default/layer.css?v=3.1.1" id="layuicss-layer">
+    <script type="text/javascript" src="https://piccache.cnki.net/nxgp/kcms/20250904r/js/pagination/jquery.pagination.js"></script>
+    <script type="text/javascript" src="https://piccache.cnki.net/nxgp/kcms/20250904r/js/apidata/nxgpdata-request.js"></script>
+    <script type="text/javascript" src="https://piccache.cnki.net/nxgp/kcms/20250904r/js/apidata/nxgp-literature-data-request.js"></script>
+    <script type="text/javascript" src="https://piccache.cnki.net/nxgp/kcms/20250904r/js/apidata/nxgp-knowledgel-data-request.js"></script>
+<link rel="stylesheet" href="https://piccache.cnki.net/2022/nxgp/head/20250826v1/loginhead/loginhead.css"><link rel="stylesheet" type="text/css" href="https://piccache.cnki.net/kdn/20250812/footer/footer.css"><link href="//login.cnki.net/tlogin/css/style.css?v=2025082202" rel="stylesheet"><script src="//login.cnki.net/tlogin/scripts/mergeScripts.js?v=2025082202"></script></head>
+<body>
+<div>
+    <div id="ModuleHeader" style="min-width: 1200px; font-family: &quot;Microsoft yahei&quot;, serif;">
+        <div>
+            <script type="text/javascript" src="https://t.cnki.net/collect/quote/nzkpt"></script>
+        </div>
+        
+        
+        <script type="text/javascript" src="https://piccache.cnki.net/nxgp/kcms/20250904r/js/collectlog.js"></script>
+        <script type="text/javascript" src="https://piccache.cnki.net/2022/nxgp/head/20250826v1/loginhead/loginhead.js"></script>
+        <header>
+            <script type="text/javascript">
+                //objselect: 加载到的头部html页面要放的标签的选择器，默认放到header标签里
+                //callback：回调函数，目前只有AI检索需要回调，因为AI检索无法区分是那个检索
+                FUNCTION_LOGINHEAD.load();
+                $(".headsch").removeClass("active")
+
+            </script>
+        <div class="nxgpheader" style="width: 96%;">
+  <a class="cnkihome" id="cnki-logo" target="_blank" href="https://www.cnki.net/">  <i class="img-logo"></i></a>
+  <script type="text/javascript" id="toploginstruct" src="https://login.cnki.net/tlogin/scripts/top.js?v=20240719" data="style=3&amp;placeid=headerBox&amp;laylocate=right&amp;nojquery=1&amp;unclose=btnSubscribe&amp;reutrnurl="></script>
+
+  <div class="nxgphome-l">
+    <a href="https://kns.cnki.net/starter/index" target="_blank" rel="noopener noreferrer" class="nxgp-title">总库</a>
+    <ul id="headResourceHomePage">
+
+      <li id="CROSSDB">
+        <a href="https://kns.cnki.net/starter/index?rs=lang&amp;sv=ZH&amp;rc=SCDB" target="_blank" rel="noopener noreferrer">
+          <span title="总库">总库</span>
+        </a>
+      </li>
+
+      <li id="JOURNAL">
+        <a href="https://kns.cnki.net/starter/index?rs=lang&amp;sv=ZH&amp;rc=CJFQ" target="_blank" rel="noopener noreferrer">
+          <span title="学术期刊">学术期刊</span>
+        </a>
+      </li>
+
+      <li id="DISSERTATION">
+        <a href="https://kns.cnki.net/starter/index?rs=lang&amp;sv=ZH&amp;rc=CDMD" target="_blank" rel="noopener noreferrer">
+          <span title="学位论文">学位论文</span>
+        </a>
+      </li>
+
+      <li id="CONFERENCE">
+        <a href="https://kns.cnki.net/starter/index?rs=lang&amp;sv=ZH&amp;rc=CIPD" target="_blank" rel="noopener noreferrer">
+          <span title="会议">会议</span>
+        </a>
+      </li>
+
+      <li id="CCND">
+        <a href="https://kns.cnki.net/starter/index?rs=lang&amp;sv=ZH&amp;rc=CCND" target="_blank" rel="noopener noreferrer">
+          <span title="报纸">报纸</span>
+        </a>
+      </li>
+
+      <li id="CYFD">
+        <a href="https://kns.cnki.net/starter/index?rs=lang&amp;sv=ZH&amp;rc=CYFD" target="_blank" rel="noopener noreferrer">
+          <span title="年鉴">年鉴</span>
+        </a>
+      </li>
+
+      <li id="BOOK">
+        <a href="https://kns.cnki.net/starter/index?rs=lang&amp;sv=ZH&amp;rc=BDZK" target="_blank" rel="noopener noreferrer">
+          <span title="图书">图书</span>
+        </a>
+      </li>
+
+      <li id="PATENT">
+        <a href="https://kns.cnki.net/starter/index?rs=lang&amp;sv=ZH&amp;rc=SCOD" target="_blank" rel="noopener noreferrer">
+          <span title="专利">专利</span>
+        </a>
+      </li>
+
+      <li id="STANDARD">
+        <a href="https://kns.cnki.net/starter/index?rs=lang&amp;sv=ZH&amp;rc=CISD" target="_blank" rel="noopener noreferrer">
+          <span title="标准">标准</span>
+        </a>
+      </li>
+
+      <li id="ACHIEVEMENTS">
+        <a href="https://kns.cnki.net/starter/index?rs=lang&amp;sv=ZH&amp;rc=SNAD" target="_blank" rel="noopener noreferrer">
+          <span title="成果">成果</span>
+        </a>
+      </li>
+
+      <li id="CCJD">
+        <a href="https://kns.cnki.net/starter/index?rs=lang&amp;sv=ZH&amp;rc=CCJD" target="_blank" rel="noopener noreferrer">
+          <span title="学术辑刊">学术辑刊</span>
+        </a>
+      </li>
+
+    </ul>
+  </div>
+  <div class="nxgphome" style="position: absolute; top: 0px; right: 400px;">
+    <div class="nxgphome-r headsch">
+      <a class="nxgp-title" href="https://kns.cnki.net/kns8s/search" target="_blank" rel="noopener noreferrer">检索<span class="icon-cate"></span></a>
+      <ul id="headSearchPage">
+        <li id="simple">
+          <a href="https://kns.cnki.net/kns8s/search" target="_blank" rel="noopener noreferrer">
+            <span>一框式检索</span>
+          </a>
+        </li>
+        <li id="adv" style="">
+          <a href="https://kns.cnki.net/kns8s/AdvSearch" target="_blank" rel="noopener noreferrer">
+            <span>高级检索</span>
+          </a>
+        </li>
+        <li id="expert" style="">
+          <a href="https://kns.cnki.net/kns8s/AdvSearch?type=expert" target="_blank" rel="noopener noreferrer">
+            <span>专业检索</span>
+          </a>
+        </li>
+        <li id="author" style="">
+          <a href="https://kns.cnki.net/kns8s/AdvSearch?type=author" target="_blank" rel="noopener noreferrer">
+            <span>作者发文检索</span>
+          </a>
+        </li>
+        <li id="sentence" style="">
+          <a href="https://kns.cnki.net/kns8s/AdvSearch?type=sentence" target="_blank" rel="noopener noreferrer">
+            <span>句子检索</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <!--AI按钮-->
+    <div class="nxgphome-r  headsearch">
+      <a class="nxgp-title" href="https://ai.cnki.net" target="_blank" rel="noopener noreferrer">CNKI AI<span class="icon-cate"></span></a>
+      <ul>
+        <li>
+          <a id="aiChat" href="https://ai.cnki.net/chat" target="_blank" rel="noopener noreferrer">
+            <span>知识问答</span>
+          </a>
+        </li>
+        <li style="">
+          <a id="aiSearch" href="https://ai.cnki.net/aisearch" target="_blank" rel="noopener noreferrer">
+            <span>增强检索</span>
+          </a>
+        </li>
+        <li style="">
+          <a id="aiStudy" href="https://ai.cnki.net/study" target="_blank" rel="noopener noreferrer">
+            <span>智能研读</span>
+          </a>
+        </li>
+        <li style="">
+          <a id="aiCreation" href="https://ai.cnki.net/aicreation" target="_blank" rel="noopener noreferrer">
+            <span>辅助创作</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="nxgphome-r check headnavisearch">
+      <a class="nxgp-title" href="https://navi.cnki.net/knavi/" target="_blank" rel="noopener noreferrer">出版来源<span class="icon-cate"></span></a>
+      <ul id="headNaviPage">
+        <li>
+          <a value="journals" href="https://navi.cnki.net/knavi/journals/index" target="_blank" rel="noopener noreferrer">
+            <span>期刊</span>
+          </a>
+        </li>
+        <li>
+          <a value="jjournals" href="https://navi.cnki.net/knavi/jjournals/index" target="_blank" rel="noopener noreferrer">
+            <span>学术辑刊</span>
+          </a>
+        </li>
+        <li>
+          <a value="degreeunits" href="https://navi.cnki.net/knavi/degreeunits/index" target="_blank" rel="noopener noreferrer">
+            <span>学位授予单位</span>
+          </a>
+        </li>
+        <li>
+          <a value="conferences" href="https://navi.cnki.net/knavi/conferences/index" target="_blank" rel="noopener noreferrer">
+            <span>会议</span>
+          </a>
+        </li>
+        <li>
+          <a value="newspapers" href="https://navi.cnki.net/knavi/newspapers/index" target="_blank" rel="noopener noreferrer">
+            <span>报纸</span>
+          </a>
+        </li>
+        <li>
+          <a value="yearbooks" href="https://navi.cnki.net/knavi/yearbooks/index" target="_blank" rel="noopener noreferrer">
+            <span>年鉴</span>
+          </a>
+        </li>
+        <li>
+          <a value="refbooks" href="https://navi.cnki.net/knavi/refbooks/index" target="_blank" rel="noopener noreferrer">
+            <span>工具书</span>
+          </a>
+        </li>
+        <li>
+          <a value="book" href="https://navi.cnki.net/knavi/book/index" target="_blank" rel="noopener noreferrer">
+            <span>图书</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="nxgphome-r check headmycnkisearch" id="btnMyCnki">
+      <a class="nxgp-title" href="https://kns.cnki.net/myspace/collect" target="_blank" rel="noopener noreferrer">我的CNKI<span class="icon-cate"></span></a>
+      <ul id="headCNKIPage">
+        <li>
+          <a value="collect" href="https://kns.cnki.net/myspace/collect" target="_blank" rel="noopener noreferrer">
+            <span>收藏夹</span>
+          </a>
+        </li>
+        <li>
+          <a value="history" href="https://kns.cnki.net/myspace/history" target="_blank" rel="noopener noreferrer">
+            <span>历史记录</span>
+          </a>
+        </li>
+        <li>
+          <a value="subscribe" href="https://kns.cnki.net/myspace/subscribe" target="_blank" rel="noopener noreferrer">
+            <span>我的关注</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+  <div class="right">
+    <div class="personal-area">
+      <!-- 帮助 -->
+      <div class="item help">
+        <span class="icon-help"></span>
+        <div class="box">
+          <div class="help-wrap">
+            <div class="title">使用帮助</div>
+            <div class="content">
+              <a class="item-txt" href="https://piccache.cnki.net/kdn/index/newhelper/manual.html#framequick-1" target="_blank">快速上手</a>
+              <a class="item-txt" href="https://piccache.cnki.net/kdn/index/newhelper/manual.html#frame1-1" target="_blank">页头</a>
+              <a class="item-txt" href="https://piccache.cnki.net/kdn/index/newhelper/manual.html#frame2-1" target="_blank">检索</a>
+              <a class="item-txt" href="https://piccache.cnki.net/kdn/index/newhelper/manual.html#frame3-1" target="_blank">CNKI AI</a>
+              <a class="item-txt" href="https://piccache.cnki.net/kdn/index/newhelper/manual.html#frame4-1" target="_blank">知网节</a>
+              <a class="item-txt" href="https://piccache.cnki.net/kdn/index/newhelper/manual.html#frame5-1" target="_blank">个性化首页</a>
+              <a class="item-txt" href="https://piccache.cnki.net/kdn/index/newhelper/manual.html#frame6-1" target="_blank">出版来源导航</a>
+              <a class="item-txt" href="https://piccache.cnki.net/kdn/index/newhelper/manual.html#frame7-1" target="_blank">我的CNKI</a>
+              <a class="item-txt" href="https://kns.cnki.net/starter/searchbar" target="_blank">文献检索代码</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 如果有更新消息，需要添加类名active -->
+      <div class="item msg active">
+        <span class="icon-bell"></span>
+        <div class="box">
+          <div class="new-msg">
+            <p class="title">【更新通知】</p>
+            <div class="content"><div class="content-item"> <p class="subtitle">【新增】 期刊文献知网节增加视频摘要在线播放功能</p><div class="content-list"><p class="msg-list">期刊文献知网节增加“视频摘要”在线播放功能，观看作者提供的视频摘要，帮助研究者高效获取信息。</p></div></div><div class="content-item"> <p class="subtitle">【优化】 HTML作者机构显示功能</p><div class="content-list"><p class="msg-list"> 遵循原文机构顺序，显示作者和作者所属机构对应关系。</p><p class="msg-list"> 新增显示作者责任方式。</p><p class="msg-list"> 新增显示同等贡献作者。</p></div></div></div>
+            <p class="btn-wrap" id="allUpdata">查看更多</p>
+          </div>
+          <div class="more-msg"><a href="https://piccache.cnki.net/kdn/index/newhelper/manual.html#frameupdate-1" target="_blank"><p class="text">查看全部更新信息</p></a></div>
+        </div>
+      </div>
+
+      <div class="item">
+        <span class="text">充值</span>
+        <div class="list">
+          <span class="list-item"><a href="https://zhifu.cnki.net/#/" target="_blank">充值中心</a></span>
+          <span class="list-item"><a href="https://vipcard.cnki.net/ec/skwd/skwd.htm" target="_blank">购买知网卡</a></span>
+        </div>
+      </div>
+      <span class="item">
+                <a href="https://member.cnki.net/" target="_blank" rel="noopener noreferrer">
+                    <span>会员</span>
+                </a>
+            </span>
+    </div>
+    <div id="headerBox">
+    </div>
+  </div>
+
+  <div>
+    <input type="hidden" id="lubanHeaderUrl" value="https://kns.cnki.net/openapi/luban/v1/tags/data/jsonp?func=DEFAULT_INDEX&amp;tag=HEADERNOTIFICATION">
+  </div>
+  <script>
+
+  </script>
+
+</div></header>
+        <input class="resource-url" type="hidden" value="https://piccache.cnki.net/nxgp/kcms/20250904r/">
+        <input class="turnpage-switch" type="hidden" value="1">
+    </div>
+    <div class="author-banner"></div>
+    <p class="page-title">文献知网节</p>
+
+</div>
+<div class="wrapper">
+    <div class="main">
+        <div class="sidebar-a" id="left_part" style="height: 1287px;">
+            <i class="icon icon-arrow" title=""></i>
+            <div class="sidebar-a-con">
+                <script>$("#left_part").show()</script>
+                <h5>文章目录</h5>
+                <div class="catalog-listDiv" style="max-height: 575px;overflow: auto;border-bottom: 1px solid #e2e2e2;">
+                    <span><ul class="catalog-list"> <li class="title-1" title="摘要">摘要</li> <li class="title-1" title="Abstract">Abstract</li> <li class="title-1" title="第一章 绪论">第一章 绪论</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第一节 研究背景和意义">&nbsp;&nbsp;&nbsp;&nbsp;第一节 研究背景和意义</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 研究背景">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 研究背景</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 研究问题">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 研究问题</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 研究意义">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 研究意义</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第二节 国内外研究现状">&nbsp;&nbsp;&nbsp;&nbsp;第二节 国内外研究现状</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 城市物流研究前沿">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 城市物流研究前沿</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 物流运力拍卖研究">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 物流运力拍卖研究</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 国内外相关文献述评">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 国内外相关文献述评</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第三节 研究内容、方法及创新点">&nbsp;&nbsp;&nbsp;&nbsp;第三节 研究内容、方法及创新点</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 研究内容">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 研究内容</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 研究方法">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 研究方法</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 创新点">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 创新点</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第四节 本章小结">&nbsp;&nbsp;&nbsp;&nbsp;第四节 本章小结</li> <li class="title-1" title="第二章 相关概念与理论基础">第二章 相关概念与理论基础</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第一节 拍卖理论基础">&nbsp;&nbsp;&nbsp;&nbsp;第一节 拍卖理论基础</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 拍卖参与方">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 拍卖参与方</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 标准拍卖类型">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 标准拍卖类型</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 正向拍卖与逆向拍卖">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 正向拍卖与逆向拍卖</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;四、 双层组合拍卖">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;四、 双层组合拍卖</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第二节 VCG机制与占优策略均衡证明">&nbsp;&nbsp;&nbsp;&nbsp;第二节 VCG机制与占优策略均衡证明</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第三节 城市物流理论与调度算法研究">&nbsp;&nbsp;&nbsp;&nbsp;第三节 城市物流理论与调度算法研究</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 城市物流理论">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 城市物流理论</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 城市物流建模与路径规划">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 城市物流建模与路径规划</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 路径规划算法与仿真模拟">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 路径规划算法与仿真模拟</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;四、 本章小结">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;四、 本章小结</li> <li class="title-1" title="第三章 数字经销平台统采共配双层拍卖机制设计">第三章 数字经销平台统采共配双层拍卖机制设计</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第一节 统采共配双层拍卖机制设计">&nbsp;&nbsp;&nbsp;&nbsp;第一节 统采共配双层拍卖机制设计</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第二节 胜者决定模型构建">&nbsp;&nbsp;&nbsp;&nbsp;第二节 胜者决定模型构建</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 上层组合拍卖的胜者决定">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 上层组合拍卖的胜者决定</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 下层组合拍卖的胜者决定">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 下层组合拍卖的胜者决定</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第三节 承运人与经销商成本模型构建">&nbsp;&nbsp;&nbsp;&nbsp;第三节 承运人与经销商成本模型构建</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 假设">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;一、 假设</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 承运人成本模型">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;二、 承运人成本模型</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 经销商成本模型">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;三、 经销商成本模型</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第四节 本章小结">&nbsp;&nbsp;&nbsp;&nbsp;第四节 本章小结</li> <li class="title-1" title="第四章 基于O-VCG的双层拍卖占优策略证明">第四章 基于O-VCG的双层拍卖占优策略证明</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第一节 O-VCG竞拍策略函数构建">&nbsp;&nbsp;&nbsp;&nbsp;第一节 O-VCG竞拍策略函数构建</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第二节 激励相容策略证明">&nbsp;&nbsp;&nbsp;&nbsp;第二节 激励相容策略证明</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第三节 个人理性、预算平衡、分配有效策略证明">&nbsp;&nbsp;&nbsp;&nbsp;第三节 个人理性、预算平衡、分配有效策略证明</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第四节 本章小结">&nbsp;&nbsp;&nbsp;&nbsp;第四节 本章小结</li> <li class="title-1" title="第五章 基于双层拍卖的统采共配算法框架设计">第五章 基于双层拍卖的统采共配算法框架设计</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第一节 预测-拍卖-优化算法集成框架设计">&nbsp;&nbsp;&nbsp;&nbsp;第一节 预测-拍卖-优化算法集成框架设计</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第二节 基于ARIMA的时间序列预测算法">&nbsp;&nbsp;&nbsp;&nbsp;第二节 基于ARIMA的时间序列预测算法</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第三节 基于CPLEX的胜者决定算法">&nbsp;&nbsp;&nbsp;&nbsp;第三节 基于CPLEX的胜者决定算法</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第四节 基于实时路径数据的混合退火算法">&nbsp;&nbsp;&nbsp;&nbsp;第四节 基于实时路径数据的混合退火算法</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第五节 本章小结">&nbsp;&nbsp;&nbsp;&nbsp;第五节 本章小结</li> <li class="title-1" title="第六章 基于大型药企的算法设计与仿真模拟实验设计">第六章 基于大型药企的算法设计与仿真模拟实验设计</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第一节 案例简析">&nbsp;&nbsp;&nbsp;&nbsp;第一节 案例简析</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第二节 实验参数设置">&nbsp;&nbsp;&nbsp;&nbsp;第二节 实验参数设置</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第三节 实验结果分析">&nbsp;&nbsp;&nbsp;&nbsp;第三节 实验结果分析</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第四节 本章小结">&nbsp;&nbsp;&nbsp;&nbsp;第四节 本章小结</li> <li class="title-1" title="第七章 总结与展望">第七章 总结与展望</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第一节 总结">&nbsp;&nbsp;&nbsp;&nbsp;第一节 总结</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第二节 管理启示">&nbsp;&nbsp;&nbsp;&nbsp;第二节 管理启示</li> <li class="title-2" title="&nbsp;&nbsp;&nbsp;&nbsp;第三节 展望">&nbsp;&nbsp;&nbsp;&nbsp;第三节 展望</li> <li class="title-1" title="参考文献">参考文献</li> <li class="title-1" title="附录">附录</li></ul></span>
+                </div>
+                <div id="kcms-data-fileimages"></div>
+            </div>
+        </div>
+        <div class="sidebar-out is-off" id="right_part" style="display: none; height: 100px;" onclick="javascript:refAuthor('refAuthorDiv',&quot;1024622689.nh&quot;,&quot;0&quot;);">
+            <a class="icon icon-arrow" title=""></a>
+            <div class="side-content essayBox">
+                <div id="RefAuthorArea">
+                    <div id="refAuthorDiv"></div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="doc">
+                <div class="doc-top">
+                    <div class="top-first">
+                        <div id="func608" class="source-info"><div class="top-tip"><span title="深圳大学"><a target="_blank" href="https://navi.cnki.net/knavi/detail?p=Fl4XKaCZWeN4f1D2oEpw_6JLR75NK0NKWBNxW4k2SjztllvXJeFMiR4XhxSh2RFHyvkm7lu80l6cRI-Dbi8tx8P0MOPjGjGM&amp;uniplatform=NZKPT">深圳大学</a></span><span>广东省</span></div></div>
+                    </div>
+                    <div class="top-second">
+                        
+
+
+    <div class="optsfun">
+        <div class="btn-tool">
+            <ul class="other-btns">
+
+                <li class="btn-quote" title="引用">
+                    <a href="javascript:void(0)" onclick="getQuotes()">
+                        <i></i>
+                    </a>
+                    
+                </li>
+
+                <li id="addfavtokpc" class="btn-collect" title="收藏">
+                    <a href="javascript:void(0)" onclick="AddFavToMyCnki(1,0)">
+                        <i></i>
+                    </a>
+                </li>
+
+                <li class="btn-share" onmouseover="sharedet(1)" onmouseout="sharedet(0)" title="分享">
+                    <i></i>
+                </li>
+                <li class="btn-print" title="打印">
+                    <a href="javascript:void(0);" onclick="window.print();">
+                        <i></i>
+                        <!--打印-->
+                    </a>
+                </li>
+
+                <li id="RefTrack" class="btn-follow" title="关注">
+                    <a href="javascript:void(0)" onclick="AddConvernToMyCnki(1,0)">
+                        <i></i>
+                    </a>
+                </li>
+
+               
+                <!--<li class="btn-yxyd" style="display:none" th:if="${#strings.equalsIgnoreCase(uniplatform,'CHKD')}">
+                   <a target="_blank" th:href="${metaDataMap.get('YX_READER_CHKD_URL')}">
+                       <i></i>
+                   </a>
+               </li>-->
+                <li class="btn-ai-reader" id="cnkiAiReader" title="CNKI AI阅读">
+                    <a target="_blank" href="https://ai.cnki.net/study?cid=RGa7mrESpptToOMuMXTtLIdDpABOkPy0aETAVZfzihwm4iM4UTsUTJq-th3gskmnyTMtySX2XnYNl2ZL9w0RWBMQcTim95WbQcQvyZY8W5vI1ZqBdCn8bJxRuFKgHA9D&amp;mimetype=PDF">
+                        <i></i>
+                    </a>
+                </li>
+                <li class="btn-note" title="记笔记"> <!--非文艺文汇期刊 或者  非 视频文献-->
+                    <a href="http://x.cnki.net/search/common/testlunbo?dbcode=CMFD&amp;tablename=CMFD202501&amp;filename=1024622689.nh&amp;filesourcetype=1" target="_blank">
+                        <i></i>记笔记
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+
+
+    </div>
+
+
+                    </div>
+                    <div><div class="brief">    <div class="wx-tit">        <h1>数字经销平台统采共配双层拍卖机制设计                                </h1>        <!--<h1 th:if="${#strings.isEmpty(metaDataMap.get('CNTI')) && !#strings.isEmpty(metaDataMap.get('ENTI'))}"><th:block th:utext="${metaDataMap.get('ENTI')}"></th:block>            <th:block th:if="${!#strings.isEmpty(metaDataMap.get('ENST'))}">——</th:block>        </h1>-->        <h3 class="author" id="authorpart">            <span>                <a target="_blank" href="https://kns.cnki.net/kcms2/author/detail?v=d7HKHDfP4kccEI4LhTb73tK2b7tqN3O5xrxjfhirROLsR7Z_4TVHcWxqEXIv79tSZrEWVhB5KdVas6X3UcR5bv7gEEfyWE7Fbodq91eHd45r-neurJjHJg==&amp;uniplatform=NZKPT&amp;language=CHS">王超</a>                            </span>        </h3>                <h3 class="author">            <span>                <a target="_blank" href="https://kns.cnki.net/kcms2/organ/detail?v=d7HKHDfP4kccEI4LhTb73rAiI532-N85hHFVq8nbY2-YYKWm8neGHiPWletMRl8clw-xUv8JznzJQRoDObEaf5YXL5kL8wJk2B70ZW9fu7scUDaSvHyJmiKgsQPP4SJRTVesYZ0ewT8=&amp;uniplatform=NZKPT&amp;language=CHS">                    深圳大学</a>                            </span>        </h3>            </div>    <input type="hidden" id="abstract_text" value="直播电商、短视频营销、社区团购等新的零售模式受疫情的催化影响在过去的几年中快速更迭发展。然而传统的旧经销模式需要每个经销商独立负责运营一张经销网络与物流网络,这种低效的经销模式与快速发展的城市快消品市场和不断变革的新零售模式矛盾愈来愈深,统一采购与统一运输的经销商联盟统采共配模式成为新经销模式的可能方向。虽然不少学者和企业从交易机制(单边和双边拍卖)和商业模式(统仓共配和一盘货交易)等多个角度对快消品经销模式的统一采购与运输进行了研究和尝试,但始终由于交易机制的局限性或者商业模式的不适性而失败。双层拍卖是一种传统拍卖的变体,主要解决双层交易定价与资源分配的问题,常应用于通信与算力等领域的研究。其上层拍卖与下层拍卖分离但又相互影响的机制特性尤其适合统采共配的新经销模式。
+因此针对当前都市圈经销商因“孤立式发展、分散化建网”而导致无法满足碎片化订单、多渠道履约及高频高效配送要求等痛点,本文提出了一种数字经销平台统采共配双层拍卖机制。在上层机制中,考虑一家数字经销平台(卖者)与多家经销商(买者),以社会福利最大化为目标,构建了单边组合Vickery-Clarke-Groves(O-VCG)拍卖机制,实现了多物品多单元环境下的供需匹配。在下层机制中,考虑一家经销商(卖者)与多家承运商(买者),基于O-VCG拍卖机制的思想,实现了从城市集拼仓到门店、从门店到客户的两级城配运输服务采购。特别地,下层机制采用多轮O-VCG竞拍以满足多家经销商的运输需求。所提出的O-VCG拍卖机制实现激励相容、个体理性和配置效率。经销商构建基于需求预测及控制合理库存的上层拍卖投标策略。构建两级基于车容的城配车辆路径问题(Two-echelon Capacity-based Vehicle Routing Problem,2E-CVRP)近似优化算法,用于求解下层拍卖机制中的基于库存限制的竞价生成问题(Bid Generation Problem,BGP)。针对双层拍卖中的胜者确定问题(Winner Determination Problem,WDP),提出有效的WDP算法。最后,基于全球最大的医药流通集团的真实数据进行数值仿真实验,结果表明:数字经销平台统采共配的双层拍卖机制可以高效分配货权及运单,合理确定批发价及城配运价,提高社会总效益,降低两级城配运输成本。">    <!--    <input type="checkbox" name="FileNameS" class="infocheckbox" style="display:none" value="CDFD2014!1013210915.nh!1!0" dbcode="${dbcode}">-->    <div class="row">        <span class="rowtit">摘要：</span>        <span id="ChDivSummary" name="ChDivSummary" class="abstract-text">直播电商、短视频营销、社区团购等新的零售模式受疫情的催化影响在过去的几年中快速更迭发展。然而传统的旧经销模式需要每个经销商独立负责运营一张经销网络与物流网络,这种低效的经销模式与快速发展的城市快消品市场和不断变革的新零售模式矛盾愈来愈深,统一采购与统一运输的经销商联盟统采共配模式成为新经销模式的可能方向。虽然不少学者和企业从交易机制(单边和双边拍卖)和商业模式(统仓共配和一盘货交易)等多个角度对快消品经销模式的统一采购与运输进行了研究和尝试,但始终由于交易机制的局限性或者商业模式的不适性而失败。双层拍卖是一种传统拍卖的变体,主要解决双层交易定价与资源分配的问题,常应用于通信与算力等领域的研究。其上层拍卖与下层拍卖分离但又相互影响的机制特性尤其适合统采共配的新经销模式。
+因此针对当前都市圈经销商因“孤立式发展、分散化建网”而导致无法满足碎片化订单、多渠道履约及高频高效配送要求等痛点,本文提出了一种数字经销平台统采共配双层拍卖机制。在上层机制中,考虑一家数字经销平台(卖者)与多家经销商(买者),以社会福利最大化为目标,构建了单边组合Vickery-Clarke-Groves(O-VCG)拍卖...</span>        <span>            <a id="ChDivSummaryMore" onclick="MoreSummary('ChDivSummary','ChDivSummaryMore','ChDivSummaryReset')" style="">更多</a>            <a id="ChDivSummaryReset" onclick="ResetSummary('ChDivSummary','ChDivSummaryMore','ChDivSummaryReset')" style="display:none">还原</a>        </span>        <script type="text/javascript">            AbstractFilter('ChDivSummary', 'ChDivSummaryMore', 'ChDivSummaryReset');        </script>    </div>    <div class="row">        <span class="rowtit">关键词：</span>        <p class="keywords">            <a target="_blank" href="https://kns.cnki.net/kcms2/keyword/detail?v=d7HKHDfP4kccEI4LhTb73qhZT1vQHEawTTMoarFgo-ALe-OpWduohAmgDXjVG0_07_dAZW-ZLmBpvs6rYecBKRmvLAJlh0xdmk5ZickV9Ki_YDn_tDR9CQ==&amp;uniplatform=NZKPT&amp;language=CHS">统采共配;</a><a target="_blank" href="https://kns.cnki.net/kcms2/keyword/detail?v=d7HKHDfP4kccEI4LhTb73qhZT1vQHEawd0dSPZGr235eq-b3VXTWN2rQ7FYgSRac-GmoUQwedg3RbUI7jUX8Ti2rkR1eO3tHhioymgcsmLgXRoxJNMB2dw==&amp;uniplatform=NZKPT&amp;language=CHS">双层拍卖;</a><a target="_blank" href="https://kns.cnki.net/kcms2/keyword/detail?v=d7HKHDfP4kccEI4LhTb73qhZT1vQHEawvX-oP7nMyyolWmG2QdfrI3ifAtPDnnYM_E3cPUls5n8fNwcTKnuy_HmELVycuKdOjJ_NBQ0m1w4AQLnMiNqF-g==&amp;uniplatform=NZKPT&amp;language=CHS">激励相容;</a><a target="_blank" href="https://kns.cnki.net/kcms2/keyword/detail?v=d7HKHDfP4kccEI4LhTb73qhZT1vQHEawNJ67yNcPCWgm56czam9MtCL-oqfSnoRpUwWOU2MhDQFCIPFqS8RQJFrDMs14pBUjvdQpWjuWMNi0Kg_M9Tn4yZbRXllFj8SA-wPxm_GeuzU=&amp;uniplatform=NZKPT&amp;language=CHS">胜者确定问题;</a><a target="_blank" href="https://kns.cnki.net/kcms2/keyword/detail?v=d7HKHDfP4kccEI4LhTb73qhZT1vQHEawPd6cDvBPFdY8RA-ozN2XtETF7iiU9ETWPTl2Zs0shlnetkgNhyigAyf31uG7RDtBLAbrZdUW7oBcxX6teaynPAjt6DCyVNHT-EAMMAbwb_Wp7--zXVCeU5AKftMBkyqActJWCA7tA6OeZdG1RWND2vtGgD1Um1W44d8mPs3PPsPVxS1rVUIKkKOFHZf5QjhBsCyR_qS0lWjMN_-4B5GEKhlgQvKN4_Fz&amp;uniplatform=NZKPT&amp;language=CHS">两级基于车容的城配车辆路径问题;</a>        </p>            </div></div><div class="row">    <ul>        <li class="top-space">            <span class="rowtit">专辑：</span>            <p>经济与管理科学</p>        </li>        <li class="top-space">            <span class="rowtit">专题：</span>            <p>工业经济;企业经济;贸易经济</p>        </li>        <li class="top-space">            <span class="rowtit">DOI：</span>            <p>10.27321/d.cnki.gszdu.2023.000253</p>        </li>        <li class="top-space">            <span class="rowtit">分类号：</span>            <p class="clc-code">F426.72;F274;F724.59</p>        </li>    </ul></div><div class="row">    <span class="rowtit">导师：</span>    <p class="keywords">孔祥天瑞</p></div><div class="row">    <span class="rowtit">学科专业：</span>    <p class="keywords">应用经济学</p></div><div class="row" id="bsdzqkcbxx">        <span class="rowtit">硕士电子期刊出版信息：</span>    <p class="keywords">        <span>            年期：2025年第06期</span>        <span style="padding:20px" id="ndate">网络出版时间：2025-05-16—2025-06-15</span>    </p></div><div class="row" id="yyThemeWords"></div></div>
+                    <div><div class="operate" id="DownLoadParts">    <div class="operate-left">        <ul class="operate-btn">            <div class="download-btns">                <li class="btn-phone">                    <a target="_blank" href="https://m.cnki.net/cnkiday/index.html?type=CMFD&amp;id=1024622689.nh&amp;title=数字经销平台统采共配双层拍卖机制设计"><i></i>手机阅读</a>                </li>                <li class="btn-cnki-ai">                    <a target="_blank" href="https://ai.cnki.net/study?cid=RGa7mrESpptToOMuMXTtLIdDpABOkPy0aETAVZfzihwm4iM4UTsUTJq-th3gskmnyTMtySX2XnYNl2ZL9w0RWBMQcTim95WbQcQvyZY8W5vI1ZqBdCn8bJxRuFKgHA9D&amp;mimetype=PDF">                        <i></i>CNKI AI阅读                    </a>                </li>                <li class="btn-yb-reader">                    <a target="_blank" href="https://bar.cnki.net/bar/download/order?id=%2BbbrIbe6iiYA%2BvD8dQ0EDilyGh6M%2Foyu76w0rLQaKyR7mflgvgkB5hgRhjAQXrfYVkTBStnvQmcAhRPkKHDP3B5CDjOP6bQLDjOK4T6DcZbcU5DNpzsJBExlSG2DYJiyOKcEuiGBHYRrSZfqbgWXfAqrBqCZ4JEfMxq%2B%2BqHy9SKhalvRyfqhFWmFWyfjAnhN4akS5QdKxdiRZC743njY%2BDLOMhHezkYSoqnHd1i8Rv0VRbV%2FoZMcDG%2BaNZFawm35%2FxSItC0f%2By3La3PiyjxoCA%3D%3D"><i></i>原版阅读</a>                </li>                <li class="btn-dlcaj">                    <a onclick="WriteKrsDownLog()" target="_blank" id="cajDown" name="cajDown" href="https://bar.cnki.net/bar/download/order?id=%2BbbrIbe6iiYA%2BvD8dQ0EDilyGh6M%2Foyu76w0rLQaKyR7mflgvgkB5hgRhjAQXrfYVkTBStnvQmcAhRPkKHDP3B5CDjOP6bQLDjOK4T6DcZYil80vbNomKFjMOhCCNkgbBlem7EOQsXoZXjDGsrijOEYqVQU7m4DA0dixYqmPrAYDsvWZFlixFVNgzAuGDi60tfbwlTH4OUN0%2FhzF1u1Onz2JMt1JvSJHzJxpuCg1VhNLAz5ccy97NtK8lm7%2BuLfE0INJdl1quo7YLY1aqNDsHQ%3D%3D"><i></i>CAJ下载</a>                </li>                <li class="btn-dlpdf">                    <a onclick="WriteKrsDownLog()" target="_blank" id="cajDown" name="cajDown" href="https://bar.cnki.net/bar/download/order?id=%2BbbrIbe6iiYA%2BvD8dQ0EDilyGh6M%2Foyu76w0rLQaKyR7mflgvgkB5hgRhjAQXrfYVkTBStnvQmcAhRPkKHDP3B5CDjOP6bQLDjOK4T6DcZYil80vbNomKFjMOhCCNkgbRL5TrvbD%2FzoXbHrAua2D%2FEYqVQU7m4DA0dixYqmPrAYDsvWZFlixFVNgzAuGDi60tfbwlTH4OUN0%2FhzF1u1Onz2JMt1JvSJHzJxpuCg1VhNLAz5ccy97NtK8lm7%2BuLfE0INJdl1quo7YLY1aqNDsHQ%3D%3D"><i></i>PDF下载</a>                </li>                <!--<li class="btn-dlpdf">                    <a onclick="WriteKrsDownLog()" target="_blank" id="pdfDown" name="pdfDown" class="pageDown"><i></i>分页下载</a>                </li>                <li class="btn-dlcaj">                    <a onclick="WriteKrsDownLog()" target="_blank" id="cajDown" name="cajDown" class="catalogDown"><i></i>分章下载</a>                </li>-->                <li class="btn-dlcaj">                    <a target="_blank" id="cajDown" name="cajDown" class="chapterDown" href="../downloaddetail/chapter?v=d7HKHDfP4kenPFN7PuArASNpM4PqLeamh5cs4fS2mKp__MxTRG7QsPwtZOwO0-nhvYJ37JZIc9CjpxVvyPdlV1rgBdH4l9GS0saQgN3fPvopt9bND-uSqw==&amp;uniplatform=NZKPT"><i></i>章节下载</a>                </li>                <li class="btn-zxcaj" style="display: none">                    <a onclick="WriteKrsDownLog()" target="_blank" id="cajZX"><i></i>致谢下载</a>                </li>                            </div>            <div class="extend-btns">                <li class="btn-grcg">                    <a target="_blank" href="https://au.cnki.net/author/workbench/myAchievement?platform=kns">                        <i></i>我是作者，免费下载                    </a>                </li>                <li class="btn-xwlwtg">                    <a target="_blank" href="https://thesis.cnki.net/login">                        <i></i>学位论文投稿                    </a>                </li>            </div>        </ul>        <div class="opts-down">            <div class="fl info">                <p class="total-inform">                    <span>下载：28</span>                    <span>页数：60</span>                    <span>大小：2135K</span>                </p>            </div>        </div>    </div></div></div>
+                    
+
+
+    <div id="kcms-data-common-service" class="tab-wrap tab-wrap-recommend dis-show">
+        <div id="xgfwtj" style=""><h5 class="module-title"><span><b>相关服务推荐</b></span></h5></div>
+        <div class="ad-service">
+            <div class="recommenda" id="recommend"></div>
+            <ul class="ad-btns">
+                <li class="ad-ylan-1"><a href="https://qb.cnki.net/" target="_blank"><span class="icon"></span>CNKI学术情报 &gt;</a></li>
+                <li class="ad-ylan-3">
+                    <a target="_blank" href="https://shendu.cnki.net"><span class="icon"></span>智能审校 &gt;</a>
+                </li>
+                <li class="ad-ylan-4">
+                    <a target="_blank" href="https://pb.cnki.net/typeset"><span class="icon"></span>个人智能排版 &gt;</a>
+                </li>
+                <li class="ad-ylan-5"><a target="_blank" href="https://xs.cnki.net/#"><span class="icon"></span>学术评价支撑平台 &gt;</a></li>
+            <li class="ad-ylan-6"><a target="_blank" href="https://wenku.cnki.net"><span class="icon"></span>知网文库 &gt;</a></li><li class="ad-ylan-7"><a target="_blank" href="https://book.cnki.net/"><span class="icon"></span>知网书店 &gt;</a></li><li class="ad-ylan-8"><a target="_blank" href="https://au.cnki.net/act/identifyDocument"><span class="icon"></span>职称评审材料 &gt;</a></li></ul>
+        </div>
+    </div>
+    <!--图书图片推荐模块-->
+    <div id="hotBooks"></div>
+
+
+                    
+                    <div id="kcms-data-quoted-corefirerecomend" style="display:none" class="tab-wrap tab-wrap-recommend dis-show"></div>
+
+                    <div id="refpartdiv" class="dis-show">
+                        <h5 class="module-title">
+                            <span><b>引文网络</b></span>
+                        </h5>
+                        <ul class="module-tab tpl_lieteratures" id="1024622689.nh">
+                            <li data-id="references" class="cur references" onclick="changeRefTypeTag(this)">参考文献</li>
+                            <li data-id="citations" class="citations" onclick="changeRefTypeTag(this)">引证文献</li>
+                            <li data-id="coreferences" class="coreferences" onclick="changeRefTypeTag(this)">共引文献</li>
+                            <li data-id="cocitations" class="cocitations" onclick="changeRefTypeTag(this)">同被引文献</li>
+                            <li data-id="secondreferences" class="secondreferences" onclick="changeRefTypeTag(this)">二级参考文献</li>
+                            <li data-id="secondcitations" class="secondcitations" onclick="changeRefTypeTag(this)">二级引证文献</li>
+<!--                            <li style="float: right!important;font-size: 12px;" onclick="exportestudy(2)">批量下载</li>-->
+                        </ul>
+                        <div id="MapArea">
+                            <div id="quoted-refcountpart" class="MapAreaLeft"><div id="div-nodeCount" style="display: none;height: 180px"><div class="map"><div class="gywx"><a id="coreferences" data-id="co-references" onclick="changerefdata(this)" name="rl" title="（也称同引文献）与本文有相同参考文献的文献，与本文有共同研究背景或依据">共引文献</a><span id="rc5"></span></div><div class="tbywx"><a id="cocitations" data-id="co-citations" onclick="changerefdata(this)" name="rl" title="与本文同时被作为参考文献引用的文献，与本文共同作为进一步研究的基础">同被引文献</a><span id="rc6"></span></div><div class="rjckwx"><a id="secondreferences" data-id="second-references" onclick="changerefdata(this)" name="rl" title="本文参考文献的参考文献。进一步反映本文研究工作的背景和依据">二级参考文献</a><span id="rc2"></span></div><div class="ckwx"><a id="references" data-id="references" class="ReferLinkOn" onclick="changerefdata(this)" name="rl" title="反映本文研究工作的背景和依据">参考文献</a><span id="rc1"></span></div><div class="yzwx"><a id="citations" data-id="citations" onclick="changerefdata(this)" name="rl" title="引用本文的文献。本文研究工作的继续、应用、发展或评价">引证文献</a><span id="rc3"></span></div><div class="rjyzwx"><a id="secondcitations" data-id="second-citations" onclick="changerefdata(this)" name="rl" title="本文引证文献的引证文献。更进一步反映本文研究工作的继续、发展或评价">二级引证文献</a><span id="rc4"></span></div><div class="jdwx">节点文献</div></div></div></div>
+                            <div id="div-literatureRef">
+                                <div id="quoted-references" data-id="references"></div>
+                                <div id="quoted-citations" data-id="citations"></div>
+                                <div id="quoted-coreferences" data-id="co-references"></div>
+                                <div id="quoted-cocitations" data-id="co-citations"></div>
+                                <div id="quoted-secondreferences" data-id="second-references"></div>
+                                <div id="quoted-secondcitations" data-id="second-citations"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="literature-recommend" class="dis-none">
+                        <h5 class="module-title">
+                            <span><b>相关文献推荐</b></span>
+                            <input type="hidden" id="param-dbcode" value="CMFD">
+                            <input type="hidden" id="param-dbname" value="CMFD202501">
+                            <input type="hidden" id="param-filename" value="1024622689.nh">
+                        </h5>
+                        <ul class="module-tab" id="Literature-tab">
+                            <li data-id="kcms-data-similar" class="cur" onclick="turnAndWriteEncryptionhz(this,'doc-list-similar')">相似文献</li>
+                            <li data-id="kcms-data-reader-recommend" onclick="turnAndWriteEncryptionhz(this,'doc-list-araDownload')">读者推荐</li>
+                            <li data-id="kcms-related-fund-literature" onclick="turnAndWriteEncryptionhz(this,'doc-list-fundFile')">相关基金文献</li>
+                            <li data-id="kcms-associated-author" onclick="turnAndWriteEncryptionhz(this,'doc-list-author')">关联作者</li>
+                            <li data-id="kcms-study-period-results" onclick="turnAndWriteEncryptionhz(this,'doc-list-achievements')">攻读期成果</li>
+                            <li data-id="kcms-recommend-video" onclick="turnAndWriteEncryptionhz(this,'doc-list-recVideo')">相关视频</li>
+                            <li data-id="kcms-recommend-law" onclick="turnAndWriteEncryptionhz(this,'doc-list-law')">相关法规</li>
+                            <li class="bulkdown" onclick="exportestudy(1)">批量下载</li>
+<!--                            <span class="bulkdown" onclick="moreexport()">导出</span>-->
+                        </ul>
+                        <div id="kcms-data-similar" class="mianbaoxian essayBox"></div>
+                        <div id="kcms-data-reader-recommend" class="mianbaoxian essayBox"></div>
+                        <div id="kcms-related-fund-literature" class="mianbaoxian essayBox" style="display:none"></div>
+                        <div id="kcms-associated-author" class="mianbaoxian essayBox" style="display:none"></div>
+                        <div id="kcms-study-period-results" class="mianbaoxian essayBox" style="display:none"></div>
+                        <input id="period-flag" value="0" type="hidden">
+                        <div id="kcms-recommend-video" class="mianbaoxian video-list"></div>
+                        <div id="kcms-recommend-law" class="mianbaoxian " style="display:none"></div>
+                        <div id="kcms-recommend-hk-law" class="mianbaoxian essayBox" style="display:none"></div>
+                    </div>
+                    <!--图书条目推荐模块-->
+                    <div id="relBooks"></div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="operate-fixed" style="display: none;">
+        <div class="fixed-btn">
+            <ul class="operate-btn">
+                <li class="btn-cnki-ai">
+                    <a target="_blank" href="https://ai.cnki.net/study?cid=RGa7mrESpptToOMuMXTtLIdDpABOkPy0aETAVZfzihwm4iM4UTsUTJq-th3gskmnyTMtySX2XnYNl2ZL9w0RWBMQcTim95WbQcQvyZY8W5vI1ZqBdCn8bJxRuFKgHA9D&amp;mimetype=PDF">
+                        <i></i>CNKI AI阅读
+                    </a>
+                </li>
+                <li class="btn-yb-reader">
+                    <a target="_blank" href="https://bar.cnki.net/bar/download/order?id=%2BbbrIbe6iiYA%2BvD8dQ0EDilyGh6M%2Foyu76w0rLQaKyR7mflgvgkB5hgRhjAQXrfYVkTBStnvQmcAhRPkKHDP3B5CDjOP6bQLDjOK4T6DcZbcU5DNpzsJBExlSG2DYJiyOKcEuiGBHYRrSZfqbgWXfAqrBqCZ4JEfMxq%2B%2BqHy9SKhalvRyfqhFWmFWyfjAnhN4akS5QdKxdiRZC743njY%2BDLOMhHezkYSoqnHd1i8Rv0VRbV%2FoZMcDG%2BaNZFawm35%2FxSItC0f%2By3La3PiyjxoCA%3D%3D"><i></i>原版阅读</a>
+                </li>
+                <li class="btn-dlcaj">
+                    <a onclick="WriteKrsDownLog()" target="_blank" id="cajDown" name="cajDown" href="https://bar.cnki.net/bar/download/order?id=%2BbbrIbe6iiYA%2BvD8dQ0EDilyGh6M%2Foyu76w0rLQaKyR7mflgvgkB5hgRhjAQXrfYVkTBStnvQmcAhRPkKHDP3B5CDjOP6bQLDjOK4T6DcZYil80vbNomKFjMOhCCNkgbBlem7EOQsXoZXjDGsrijOEYqVQU7m4DA0dixYqmPrAYDsvWZFlixFVNgzAuGDi60tfbwlTH4OUN0%2FhzF1u1Onz2JMt1JvSJHzJxpuCg1VhNLAz5ccy97NtK8lm7%2BuLfE0INJdl1quo7YLY1aqNDsHQ%3D%3D"><i></i>CAJ下载</a>
+                </li>
+                <li class="btn-dlpdf">
+                    <a onclick="WriteKrsDownLog()" target="_blank" id="cajDown" name="cajDown" href="https://bar.cnki.net/bar/download/order?id=%2BbbrIbe6iiYA%2BvD8dQ0EDilyGh6M%2Foyu76w0rLQaKyR7mflgvgkB5hgRhjAQXrfYVkTBStnvQmcAhRPkKHDP3B5CDjOP6bQLDjOK4T6DcZYil80vbNomKFjMOhCCNkgbRL5TrvbD%2FzoXbHrAua2D%2FEYqVQU7m4DA0dixYqmPrAYDsvWZFlixFVNgzAuGDi60tfbwlTH4OUN0%2FhzF1u1Onz2JMt1JvSJHzJxpuCg1VhNLAz5ccy97NtK8lm7%2BuLfE0INJdl1quo7YLY1aqNDsHQ%3D%3D"><i></i>PDF下载</a>
+                </li>
+                <li class="btn-dlcaj">
+                    <a target="_blank" id="cajDown" name="cajDown" class="chapterDown" href="../downloaddetail/chapter?v=d7HKHDfP4kenPFN7PuArASNpM4PqLeamh5cs4fS2mKp__MxTRG7QsPwtZOwO0-nhvYJ37JZIc9CjpxVvyPdlV1rgBdH4l9GS0saQgN3fPvopt9bND-uSqw==&amp;uniplatform=NZKPT"><i></i>章节下载</a>
+                </li>
+                <li class="btn-zxcaj" style="display: none">
+                    <a onclick="WriteKrsDownLog()" target="_blank" id="cajZX"><i></i>致谢下载</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="img-wrap">
+    <div class="dz-carousel" style="position: relative;z-index: 0;margin-top:-30px;padding: 0 27px 20px;background-color: #f9f9f9;" id="dz-carousel">
+        <script type="text/javascript" src="https://search.cnki.net/adfiles/ad/R021.js?sc=J150;J152;J157"></script><style type="text/css">#dz-carousel .publicize{width:100%;padding:0 39px;min-width:1200px;font-family:"Microsoft yahei";background-color:#f6f7f9;box-sizing:border-box;margin:0;}#dz-carousel .partner_title{font-size:16px;font-family:Microsoft YaHei;font-weight:bold;color:#333333;padding:33px 0 15px;margin:0;}#dz-carousel .content_wrap{position:relative;margin-left:-9px;margin-right:-8px;margin-top:15px;}#dz-carousel .lists_wrap{width:100%;overflow:hidden;}#dz-carousel .lists{height:113px;font-size:0;transition:all 1s;}#dz-carousel .item{display:inline-block;width:287px;height:113px;cursor:pointer;box-sizing:border-box;}#dz-carousel .right_shandow{position:absolute;width:100px;height:100%;background:linear-gradient( to left,#F6F7FA 0%,rgba(246,247,250,0) 100%);right:0;top:0;display:none;}#dz-carousel .right_shandow img{position:absolute;right:0;top:50%;transform:translate(70%,-50%);cursor:pointer;}#dz-carousel .left_shandow{position:absolute;width:100px;height:100%;background:linear-gradient( to right,#F6F7FA 0%,rgba(246,247,250,0) 100%);left:0;top:0;display:none;}#dz-carousel .left_shandow img{position:absolute;left:0;top:50%;transform:translate(-70%,-50%);cursor:pointer;}</style>
+
+    </div>
+</div>
+<div id="ModuleFooter" style=""><footer><div class="footer"><div class="foot-top"><ul class="content"><li><b>读者服务</b> <a target="_blank" href="http://vipcard.cnki.net/ec/skwd/skwd.htm">购买知网卡</a> <a target="_blank" href="http://zhifu.cnki.net/">充值中心</a> <a target="_blank" href="http://my.cnki.net/">我的CNKI</a> <a target="_blank" href="http://service.cnki.net/helpcenter/">帮助中心</a></li><li><b>CNKI常用软件下载</b> <a target="_blank" href="http://cajviewer.cnki.net">CAJViewer浏览器</a> <a target="_blank" href="https://estudy.cnki.net/">知网研学（原E-Study）</a> <a target="_blank" href="https://www.cnki.net/software/xzydq.htm">下载中心</a> <a target="_blank" href="https://piccache.cnki.net/2022/kdn/software/standardreader.exe">标准阅读器</a></li><li><b>特色服务</b> <a target="_blank" href="http://wap.cnki.net/">手机知网</a> <a target="_blank" href="http://wuxizazhi.cnki.net/">杂志订阅</a> <a target="_blank" href="http://mall.cnki.net/">数字出版物订阅</a> <a target="_blank" href="http://a.cnki.net">广告服务</a></li><li><b>客户服务</b> <span>订卡热线：400-819-9993</span> <span>服务热线：400-810-9888</span> <span>在线咨询：<a target="_blank" href="http://service.cnki.net">service.cnki.net</a></span> <span>邮件咨询：<a target="_blank" href="mailto:help@cnki.net">help@cnki.net</a></span></li><li class="weibo"><a target="_blank" href="http://e.weibo.com/u/3059308095"><span class="footer-icons icon-xl"></span><span>新浪微博客服</span></a> <a class="qrcode" href="javascript:void(0)"><span class="footer-icons icon-wechat"></span><span>官方微信</span> <span class="footer-icons wechat-qrcode"></span></a></li></ul></div><div class="foot-bot clearfix"><div class="t"><i class="foot-logo"></i><p class="mid"><span><a target="_blank" href="http://cnki.net/gycnki/gycnki.htm">关于我们</a> <a target="_blank" href="http://www.cnki.net/other/gonggao/gongsirongyu.html">CNKI 荣誉</a> <a target="_blank" href="http://www.cnki.net/other/gonggao/bqsm.htm">版权公告</a> <a target="_blank" href="https://service.cnki.net/">客服中心</a> <a target="_blank" href="https://service.cnki.net/home?flag=1">用户建议</a> <a target="_blank" href="https://piccache.cnki.net/index/CNKIRecruit/index.html">知网招聘</a> <a target="_blank" href="http://a.cnki.net/">知网推广</a></span> <span id="copyright">© 1998-2025中国知网（CNKI）</span></p><p class="right"><a id="___szfw_logo___" href="https://ss.knet.cn/verifyseal.dll?sn=e13111111010043364isll000000&amp;a=1&amp;pa=0.08881110103584755" target="_blank"><span class="footer-icons"></span></a> <a id="A1" href="https://credit.cecdc.com/CX20140929005220005306.html" target="_blank" style="display:none"><span class="footer-icons"></span></a><script type="text/javascript">!function(){document.getElementById("___szfw_logo___").oncontextmenu=function(){return!1}}();</script></p></div><div class="b"><span>京 ICP 证 040431 号<a target="_blank" href="https://piccache.cnki.net/index/images/gb/416.jpg">网络出版服务许可证网出证(京)字第416号</a> 京公网安备 11010802020460 号</span> <span>《中国学术期刊（光盘版）》电子杂志社有限公司</span> <span>KDN 平台基础技术由 AIKBase 提供.</span></div></div></div><div class="module-fixed-right" style="display: none;"><div id="ModuleToolbar"><div class="fixedbar"><div class="adviceside"><a class="fixCon" href="https://service.cnki.net" target="_blank">在线咨询</a> <a class="fixFed" href="https://help.cnki.net/Live800_2_2.aspx" target="_blank">用户反馈</a></div><div class="backtop" id="backtop"><a id="backTopSide" class="back-top" href="javascript:void(0);" target="_self" style="display: none;"><i class="icon-backtop"></i></a></div></div></div></div><script type="text/javascript">function backTop(){backBtn=$(".back-top");var n=100;$(window).on("load scroll",function(){$(window).scrollTop()>n?backBtn.show():backBtn.hide()}),backBtn.click(function(){return $("body,html").animate({scrollTop:0},500),!1})}$(function(){backTop()});</script></footer></div>
+<a id="backtop" class="back-top" href="javascript:scroll(0,0);" target="_self" title="返回顶部" style="display: none;"><i class="icon-backtop"></i></a>
+<input id="paramfilename" type="hidden" value="1024622689.nh">
+<input id="paramdbcode" type="hidden" value="CMFD">
+<input id="paramresource" type="hidden" value="DISSERTATION">
+<input id="paramdbname" type="hidden" value="CMFD202501">
+<input id="elparamres" type="hidden" value="2025!06!硕士">
+<input id="ejparams" type="hidden" value="2025!06!JJJM">
+<input id="apiHost" type="hidden" value="https://kns.cnki.net/restapi">
+<input id="citation-api-clientId" type="hidden" value="799d0341-91d6-4f19-a9cc-2c9d5b07f9fa">
+<input id="paramkcmslink" type="hidden" value="v=d7HKHDfP4kdViBPpIDfSUsw8adlMDfddp_YgyFRNfcHonaGP_RfSkNOjI1NSU6nZ7Zl8C0vEWh9Wm17dSiIeRlWUChWZE-ADCOhSUGLwmg--CFz6nGcJTbdEy0JqTaFb1AuRkZtr-j2HrX9aS6isIMRk-7Ox-lXQ&amp;uniplatform=NZKPT">
+<input id="citation-api-vv" type="hidden" value="131c5469bf9ba0e8bae332c174c82a5ac409182cf6bb88c864566d71a8066265d9f2b54e40063c6b1c213bac935f1864f2ff8db950dbe4e84cc5ed938a75c4f1">
+<input id="literature-api-clientId" type="hidden" value="21acf44c-2945-4933-b50c-6aa3723df6eb">
+<input id="literature-api-vv" type="hidden" value="0088abb3acd2bfb3b239e7c640a827d4344a1a0cb6f6927ead72673e7ca204090b4518553a07b0e2b55de67af5fb5e546377eb3a50f1dd2b6106c673a7c4b105">
+<input id="publication-api-clientId" type="hidden" value="92b0eb1a-0b84-4d55-a9ee-505dda0efa50">
+<input id="publication-api-vv" type="hidden" value="25d236a2a1c3ce6d844bed27188c867ba2e08124d231e52a184afc12f80ead57">
+<input id="knowledge-api-clientId" type="hidden" value="4ea81f90-1fa0-4c3f-b1b4-61f1fb92a1b1">
+<input id="knowledge-api-vv" type="hidden" value="d6f0f57ef065303180558554a8f7ee7ea1e1eec05653a49c79a1ab358a4aa72b1b70a5a084280b451a3c78e5b5ea7b2d02f2373130531706df4dc3ad26e91696">
+<input id="isLazyLoad" type="hidden" value="1">
+<input id="params-nvsmkeywors" type="hidden" value="拍卖机制设计;经销商;胜者确定问题;双层拍卖;统采共配;两级基于车容的城配车辆路径问题;承运商;快消品;VCG;激励相容;">
+<input id="publicationcode" type="hidden" value="GSZDU">
+<input id="page" type="hidden" value="">
+<input id="piccachelink" type="hidden" value="https://piccache.cnki.net/nxgp/kcms/20250904r/">
+<input id="freeArticleData" type="hidden" value="">
+<input id="wntpApiHost" type="hidden" value="https://kns.cnki.net/image-api/v1/openapi/image/list">
+<input id="filetype" type="hidden" value="PDF;">
+<input id="cnkiAiUrl" type="hidden" value="https://aiplus.cnki.net/aiplus/direct?cid=RGa7mrESpptToOMuMXTtLIdDpABOkPy0aETAVZfzihwm4iM4UTsUTJq-th3gskmnyTMtySX2XnYNl2ZL9w0RWBMQcTim95WbQcQvyZY8W5vI1ZqBdCn8bJxRuFKgHA9D&amp;mimetype=PDF">
+<input id="rbook-api" type="hidden" value="https://t.cnki.net/rbook-api/v1/criteria/query?uniplatform=NRBOOK">
+<input id="mycnkiApiHost" type="hidden" value="https://recsys.cnki.net/RCDService">
+<input id="copy" type="hidden" value="v=d7HKHDfP4kcafGCHX7fcGyQsOBgr_AgDUWmX7KaINQ1Qm0GBqRXUdVG3FtNYwPRWPnbmm5Yz9BP52BSGLAZyQCaxLGeTtq9s3zcupMVa-uXg3TEJPJWJNJijSp635egwTGin4MuqI5zy3B-312r1vq8gAv9Iks6dlk7KOWg-kYQ=&amp;uniplatform=NZKPT">
+<input id="weibo" type="hidden" value="v=d7HKHDfP4kcafGCHX7fcGyQsOBgr_AgDUWmX7KaINQ1Qm0GBqRXUdVG3FtNYwPRWPnbmm5Yz9BP52BSGLAZyQCaxLGeTtq9s3zcupMVa-uXg3TEJPJWJNJijSp635egwTGin4MuqI5whspvyz9MeLO9C_qBYIIH-Dw8ef5KT1DElBMgaqjSJrQ==&amp;uniplatform=NZKPT">
+<input id="qr" type="hidden" value="v=d7HKHDfP4kcafGCHX7fcGyQsOBgr_AgDUWmX7KaINQ1Qm0GBqRXUdVG3FtNYwPRWPnbmm5Yz9BP52BSGLAZyQCaxLGeTtq9s3zcupMVa-uXg3TEJPJWJNJijSp635egwTGin4MuqI5x9gf4MxRJAJFUQHhOT9DCjgUNmH8HrdWQ=&amp;uniplatform=NZKPT">
+<input class="authorcode" type="hidden" value="000065049580">
+<input id="export-id" type="hidden" value="RGa7mrESpptToOMuMXTtLIdDpABOkPy0aETAVZfzihwm4iM4UTsUTJq-th3gskmnyTMtySX2XnYNl2ZL9w0RWBMQcTim95WbQcQvyZY8W5vI1ZqBdCn8bJxRuFKgHA9D">
+<input id="export-url" type="hidden" value="https://kns.cnki.net/dm8/API/GetExport">
+
+<script>
+
+    var fbt = "";
+    var title = "数字经销平台统采共配双层拍卖机制设计";
+    if(fbt){
+        $('title').html(title+"——"+fbt+" - 中国知网");
+    }else{
+        $('title').html(title+" - 中国知网");
+    }
+
+    $(document).ready(function(){
+        //因现在收藏、关注必须登录个人账号后才能操作，故页面初始化时只有登录后才能初始化 关注、收藏状态
+        utype = getUInfoFromECP("utype");
+        if(utype){
+            AddFavToMyCnki(0);
+            AddConvernToMyCnki(0,0);
+        }
+    });
+    var sourceHref ="https://navi.cnki.net/knavi/detail?p=Fl4XKaCZWeN4f1D2oEpw_6JLR75NK0NKWBNxW4k2SjztllvXJeFMiR4XhxSh2RFHyvkm7lu80l6cRI-Dbi8tx8P0MOPjGjGM&amp;uniplatform=NZKPT";
+
+    var cf = "0";
+    if (parseInt(cf) > 0) {
+        $("#right_part").show();
+    }
+
+    //免费文献功能
+    /*var fas = "";
+    if (fas==1) {
+        RenderFreeLiterature("1024622689.nh","CMFD","2023","CMFD202501");
+    }*/
+
+
+    //动态添加广告脚本
+    var srcCode = "GSZDU";
+    var ztCode = "J150;J152;J157";
+    var src = "深圳大学";
+    getAdsScript(srcCode,ztCode,src);
+
+    var keyword = "统采共配;;双层拍卖;;激励相容;;胜者确定问题;;两级基于车容的城配车辆路径问题";
+    getBookAdsScript(keyword, ztCode);
+
+    var cf = "0";
+    if (parseInt(cf) > 0) {
+        $("#right_part").show();
+    }
+
+    //博硕电子期刊信息
+    randerDejournalInfo("CMFD","2025","06","JJJM");
+
+
+    //致谢下载
+    handlerZXBtn()
+
+    //CHKD医药主题词&研学阅读
+    if("NZKPT".toUpperCase() == "CHKD"){
+        var param = {
+            "MFLAG": "",
+            "TOPIC": "",
+            "SUS":"",
+            "AMZTC": "",
+            "MZYC": "",
+            "MCYC": "",
+            "MZYXC": "",
+            "MCYXC": ""
+        }
+        RenderAjaxYYThemeWords(JSON.stringify(param));
+        sourceInfo(sourceHref,"GSZDU","GJUG06Z1","DPY");
+        var utype = getUInfoFromECP("utype");
+        if(utype){
+            getYxRights();
+        }
+    }else{
+        sourceInfo(sourceHref,"GSZDU","PVBT1ZGM","DPY");
+    }
+</script><script type="text/javascript" src="https://a.cnki.net/gadssource/js/kcmsad.js?adpot=0302003&amp;maga=GSZDU&amp;zt=J150;J152;J157&amp;pe=recommend&amp;w=260&amp;h=170&amp;s=10&amp;kw=%E6%B7%B1%E5%9C%B3%E5%A4%A7%E5%AD%A6&amp;t=1757647693070"></script><script type="text/javascript" src="https://search.cnki.net/adfiles/book/recommendBooks.js?keyword=%E7%BB%9F%E9%87%87%E5%85%B1%E9%85%8D%3B%E5%8F%8C%E5%B1%82%E6%8B%8D%E5%8D%96%3B%E6%BF%80%E5%8A%B1%E7%9B%B8%E5%AE%B9%3B%E8%83%9C%E8%80%85%E7%A1%AE%E5%AE%9A%E9%97%AE%E9%A2%98%3B%E4%B8%A4%E7%BA%A7%E5%9F%BA%E4%BA%8E%E8%BD%A6%E5%AE%B9%E7%9A%84%E5%9F%8E%E9%85%8D%E8%BD%A6%E8%BE%86%E8%B7%AF%E5%BE%84%E9%97%AE%E9%A2%98&amp;subject=J150;J152;J157&amp;code=F426.72;F274;F724.59"></script><style type="text/css">#relBooks .book_title{height: 42px;margin-top: 30px;text-align: center;border-bottom: 1px dashed #a9a9a9;clear: both;font-size: 14px;line-height: 60px;color: #000;}#relBooks .book_title span{display: inline-block;line-height: 80px;height: 42px;margin: 0 auto;padding: 0 40px;font-size: 18px;font-weight: normal;color: #666;border-bottom: 1px solid #53a3e2;}#relBooks .book_title span b {font-family: "Microsoft Yahei";margin: 0 auto;padding: 0 40px;line-height: 80px;font-weight: normal;letter-spacing: 2px;background: #fff;}#relBooks .lists{padding:20px 0 20px;font-size: 14px;line-height: 2;}#relBooks .list_item{font-family: Arial, Helvetica, SimSun, "宋体", sans-serif;position: relative;z-index: 1;padding: 1px 26px 1px 5px;line-height: 2;zoom: 1;color: #666;word-wrap: break-word;word-break: break-all;}#relBooks .list_item  a{color: #506697;cursor: pointer;text-decoration: none;cursor: pointer;}#relBooks .list_item  a:hover{color: #ff7624 !important;}</style>
+<style type="text/css">#hotBooks .books { padding-top: 30px; display: flex; justify-content: space-between; padding-bottom: 10px; flex-wrap: wrap; } #hotBooks .books .book { width: calc((100% - 5 * 10px) / 6); max-width: 190px; margin-bottom: 10px; display: flex; flex-direction: column; align-items: center; text-decoration: none; outline: none; min-height: 232px; } #hotBooks .books .book .img_box { box-sizing: border-box; display: block; width: 100%; height: 190px; border: 1px solid #F0F0F0; padding: 4px; } #hotBooks .books .book .img_box img { display: block; width: 100%; height: 100%;object-fit: contain; } #hotBooks .books .book .title {text-align: left; font-family: "Microsoft Yahei";font-weight: 400; font-size: 14px; color: #54688D; line-height: 40px; height: 40px; margin: 0 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; } #hotBooks .books .book .title:hover{ color: #ff7624; }</style>
+
+<div id="GLSearch"></div></body></html>
