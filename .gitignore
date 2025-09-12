@@ -1,0 +1,10 @@
+*.ckpt
+__pycache__/
+.vscode/
+*.pyc
+.uuid
+*/logs/
+logs/
+*/.DS_Store
+.DS_Store
+.idea/
