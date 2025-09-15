@@ -16,7 +16,7 @@ def init_chrome_driver(headless=True):
     chrome_options.add_argument("--no-sandbox")
     # 伪装正常浏览器的User-Agent（避免被识别为爬虫）
     chrome_options.add_argument(
-        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
     )
     # chrome_options.add_argument("--proxy-server=http://127.0.0.1:7890")
 

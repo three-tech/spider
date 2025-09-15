@@ -11,13 +11,14 @@ from selenium.webdriver.common.by import By  # 找元素时用
 from tornado import concurrent
 
 from driver import init_chrome_driver
-from util.logs import create_zhiwang_logger, write_log
+from util.logs import create_zhiwang_logger
 
 logger = create_zhiwang_logger('spider')
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 PATH_ZHIWANG = os.path.join(PROJECT_ROOT, 'data', 'zhiwang.csv')
 PATH_KEYS = os.path.join(PROJECT_ROOT, 'data', 'keys.txt')
+PATH_KEYS_NOT = os.path.join(PROJECT_ROOT, 'data', 'keys_not.txt')
 PATH_ZHIWANG_DETAIL = os.path.join(PROJECT_ROOT, 'data', 'zhiwang')
 PATH_ZHIWANG_NEW = os.path.join(PROJECT_ROOT, 'data', 'zhiwang_new.csv')
 PATH_ZHIWANG_SOURCE = os.path.join(PROJECT_ROOT, 'data', 'html')
@@ -96,20 +97,25 @@ class ZhiWang:
 
 
 def parse_single_key(key):
-    driver = init_chrome_driver()
+    driver = init_chrome_driver(False)
     # 进入官网
-    driver.get("https://kns.cnki.net/kns8s/search?classid=WD0FTY92")
+    driver.get("https://kns.cnki.net/kns8s/search?")
 
     # 让子弹飞一会儿，让网页加载一会儿
     time.sleep(5)
     driver.find_element(By.XPATH, '//input[@id="txt_search"]').send_keys(key)
-    # 模拟人类，等待2秒
+    # 模拟人类，等待5秒
     time.sleep(5)
     # 点击查找按钮
     driver.find_element(By.XPATH,
                         '//div[@id="ModuleSearch"]/div[1]/div[@class="search-box"]/div[@class="content"]/div[@class="search-main"]/div[@class="input-box"]/input[@class="search-btn"]').click()
     # 一个比较长的加载过程
     time.sleep(5)
+
+    if save_not_exist_data(driver, key):
+        logger.info(f"{key} 明确不存在")
+        return
+
     # 使用XPath查找表格元素，然后获取其行数来判断列表数量
     table_rows = driver.find_elements(By.XPATH,
                                       "//div[@id='gridTable']/div/div/div/table[@class='result-table-list']//tr")
@@ -152,6 +158,15 @@ def parse_single_key(key):
     driver.quit()
 
 
+def save_not_exist_data(driver, key) -> bool:
+    v = '抱歉，暂无数据，请稍后重试。'
+    if v in driver.page_source:
+        with open(PATH_KEYS_NOT, 'a', encoding='utf-8') as f:
+            f.write(key + '\n')
+        return True
+    return False
+
+
 def pase_link(d: ZhiWang, driver, name_element):
     link = d.data_source_link
     if pd.isna(link):
@@ -171,7 +186,7 @@ def pase_link(d: ZhiWang, driver, name_element):
             break
     logger.info(f'处理：{d.title}  {d.data_source_link}')
     # 保存原网页
-    save_source(driver, d)
+    # save_source(driver, d)
     # 分析
     analyze_by_soup(driver.page_source, d)
     # 保存
@@ -311,10 +326,17 @@ def run(mod=1, enable_filter=True, start_key=''):
     # 读取配置
     with open(PATH_KEYS, 'r', encoding='utf-8') as f:
         keysList = [line.strip() for line in f.readlines()]
+    # 读取明确不存在的
+    with open(PATH_KEYS_NOT, 'r', encoding='utf-8') as f:
+        keysNotList = [line.strip() for line in f.readlines()]
+    keysList = [key for key in keysList if key not in keysNotList]
+
     # 遗漏过滤
     if enable_filter:
         df = pd.read_csv(PATH_ZHIWANG_DETAIL)
         keysList = [key for key in keysList if key not in df['查询关键字'].tolist()]
+
+    keysList = keysList[::-1]
     # 截取列表
     if start_key and start_key in keysList:
         keysList = keysList[keysList.index(start_key):]
@@ -324,7 +346,7 @@ def run(mod=1, enable_filter=True, start_key=''):
         for k in keysList:
             parse_single_key(k)
     elif mod == 2:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             # 提交任务到线程池
             futures = [executor.submit(parse_single_key, key) for key in keysList]
             # 每30秒输出一次剩余任务量
@@ -338,7 +360,7 @@ def run(mod=1, enable_filter=True, start_key=''):
 
 
 if __name__ == '__main__':
-    suf = '/20250911190224.csv'
+    suf = '/zhiwang-2.csv'
     PATH_ZHIWANG_DETAIL += suf
     # analyze()
-    run(2, True, '')
+    run(1, True, '')
