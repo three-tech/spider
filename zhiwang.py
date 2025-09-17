@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By  # 找元素时用
 from tornado import concurrent
 
 from driver import init_chrome_driver
-from util.logs import create_zhiwang_logger
+from utils.logs import create_zhiwang_logger
 
 logger = create_zhiwang_logger('spider')
 
@@ -322,45 +322,46 @@ def analyze():
                 z.addToCsv(PATH_ZHIWANG_NEW)
 
 
-def run(mod=1, enable_filter=True, start_key=''):
+def run(work_cnt=1, enable_filter=True, start_key=''):
     # 读取配置
     with open(PATH_KEYS, 'r', encoding='utf-8') as f:
         keysList = [line.strip() for line in f.readlines()]
     # 读取明确不存在的
+    create_file(PATH_KEYS_NOT)
     with open(PATH_KEYS_NOT, 'r', encoding='utf-8') as f:
         keysNotList = [line.strip() for line in f.readlines()]
     keysList = [key for key in keysList if key not in keysNotList]
 
     # 遗漏过滤
-    if enable_filter:
+    if enable_filter and os.path.exists(PATH_ZHIWANG_DETAIL):
         df = pd.read_csv(PATH_ZHIWANG_DETAIL)
         keysList = [key for key in keysList if key not in df['查询关键字'].tolist()]
 
-    keysList = keysList[::-1]
     # 截取列表
     if start_key and start_key in keysList:
         keysList = keysList[keysList.index(start_key):]
     ZhiWang.total_cnt = len(keysList)
     logger.info(f"待处理列表: {ZhiWang.total_cnt}\n {keysList}")
-    if mod == 1:
-        for k in keysList:
-            parse_single_key(k)
-    elif mod == 2:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            # 提交任务到线程池
-            futures = [executor.submit(parse_single_key, key) for key in keysList]
-            # 每30秒输出一次剩余任务量
-            while any(not future.done() for future in futures):
-                remaining = sum(1 for future in futures if not future.done())
-                logger.info(f"剩余任务量: {remaining}")
-                time.sleep(30)
-            # 等待所有任务完成
-            concurrent.futures.wait(futures)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=work_cnt) as executor:
+        # 提交任务到线程池
+        futures = [executor.submit(parse_single_key, key) for key in keysList]
+        # 每30秒输出一次剩余任务量
+        while any(not future.done() for future in futures):
+            remaining = sum(1 for future in futures if not future.done())
+            logger.info(f"剩余任务量: {remaining}")
+            time.sleep(30)
+        # 等待所有任务完成
+        concurrent.futures.wait(futures)
     logger.info(f"总数量: {ZhiWang.total_cnt} 成功数量: {ZhiWang.success_cnt}")
 
 
+def create_file(path):
+    if not os.path.exists(path):
+        open(path, 'w', encoding='utf-8').close()  # 创建空文件
+
+
 if __name__ == '__main__':
-    suf = '/zhiwang-2.csv'
+    suf = '/zhiwang-3.csv'
     PATH_ZHIWANG_DETAIL += suf
     # analyze()
-    run(1, True, '')
+    run(5, True, '')
