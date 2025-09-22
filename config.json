@@ -1,0 +1,37 @@
+{
+  "database": {
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "123456",
+    "database": "resource",
+    "charset": "utf8mb4"
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "file_path": "logs/spider.log"
+  },
+  "spider": {
+    "delay": 1,
+    "timeout": 30,
+    "retry_times": 3,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  },
+  "api": {
+    "auth_token": ""
+  },
+  "sms": {
+    "feishu": {
+      "enabled": true,
+      "webhook_url": "https://open.feishu.cn/open-apis/bot/v2/hook/4b25ead1-92e6-408d-8a8b-7709b99311f3",
+      "secret": ""
+    }
+  },
+  "users": [],
+  "max_tweets_per_user": 50,
+  "include_retweets": false,
+  "force_refresh": false,
+  "delay_between_requests": 5,
+  "output_file": "data/x/tweets.json"
+}
