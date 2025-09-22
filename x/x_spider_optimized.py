@@ -12,10 +12,11 @@ import requests
 import sys
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any, Generator
-import logging
-
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# 现在导入base模块
+from base.logger import get_logger
 from base.database import DatabaseManager
 try:
     from x_auth_client import create_x_auth_client, XAuthClient
@@ -38,25 +39,17 @@ class XSpiderOptimized:
             with open(config_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except FileNotFoundError:
-            logging.error(f"配置文件 {config_path} 不存在")
+            self.logger.error(f"配置文件 {config_path} 不存在")
             raise
         except json.JSONDecodeError:
-            logging.error(f"配置文件 {config_path} 格式错误")
+            self.logger.error(f"配置文件 {config_path} 格式错误")
             raise
     
     def setup_logging(self):
-        """设置日志"""
-        log_dir = "../logs"
-        os.makedirs(log_dir, exist_ok=True)
-        
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(f'{log_dir}/x_spider_optimized.log', encoding='utf-8'),
-                logging.StreamHandler()
-            ]
-        )
+        """设置日志 - 使用统一的loguru日志系统"""
+        from base.logger import get_logger
+        self.logger = get_logger(self.__class__.__name__)
+        return self.logger
     
     def setup_database(self):
         """设置数据库连接"""
@@ -69,10 +62,11 @@ class XSpiderOptimized:
                 password=db_config.get("password", "123456"),
                 database=db_config.get("database", "resource")
             )
-            logging.info("数据库连接初始化成功")
+            self.logger.info("数据库连接初始化成功")
         except Exception as e:
-            logging.error(f"数据库连接初始化失败: {e}")
-            raise
+            self.logger.error(f"数据库连接初始化失败: {e}")
+            self.db_manager = None
+            # 不抛出异常，允许程序继续运行但无法使用数据库功能
     
     def setup_twitter_client(self):
         """设置X认证客户端"""
@@ -81,15 +75,15 @@ class XSpiderOptimized:
             auth_token = api_config.get("auth_token", "")
             
             if not auth_token:
-                logging.error("❌ 未配置auth_token，无法初始化X客户端")
+                self.logger.error("❌ 未配置auth_token，无法初始化X客户端")
                 self.twitter_client = None
                 return
             
             self.twitter_client = create_x_auth_client(auth_token)
-            logging.info("✅ X认证客户端初始化成功")
+            self.logger.info("✅ X认证客户端初始化成功")
             
         except Exception as e:
-            logging.error(f"❌ X认证客户端初始化失败: {e}")
+            self.logger.error(f"❌ X认证客户端初始化失败: {e}")
             self.twitter_client = None
     
     def get_user_info(self, screen_name: str, force_refresh: bool = False) -> Optional[Dict[str, str]]:
@@ -99,7 +93,7 @@ class XSpiderOptimized:
             if not force_refresh and self.db_manager:
                 cached_user = self.db_manager.get_member_by_screen_name(screen_name)
                 if cached_user:
-                    logging.info(f"📦 从数据库缓存获取用户信息：@{screen_name}")
+                    self.logger.info(f"📦 从数据库缓存获取用户信息：@{screen_name}")
                     return {
                         "screenName": cached_user.screen_name,
                         "userId": str(cached_user.user_id),
@@ -116,13 +110,13 @@ class XSpiderOptimized:
                     with open(cache_path, 'r', encoding='utf-8') as f:
                         cached = json.load(f)
                     if cached.get('userId'):
-                        logging.info(f"📦 使用文件缓存用户信息：@{screen_name}")
+                        self.logger.info(f"📦 使用文件缓存用户信息：@{screen_name}")
                         return cached
                 except Exception as e:
                     logging.warning(f"读取文件缓存失败: {e}")
             
             # 步骤3: 调用API获取新数据
-            logging.info(f"🌐 正在请求API获取用户信息：@{screen_name}")
+            self.logger.info(f"🌐 正在请求API获取用户信息：@{screen_name}")
             
             # 构建API请求
             user_info = self._fetch_user_by_screen_name(screen_name)
@@ -137,28 +131,28 @@ class XSpiderOptimized:
                 if full_user_data and self.db_manager:
                     save_success = self.db_manager.save_member(full_user_data)
                     if save_success:
-                        logging.info(f"✅ 用户信息已保存到数据库缓存：@{screen_name}")
+                        self.logger.info(f"✅ 用户信息已保存到数据库缓存：@{screen_name}")
                     else:
-                        logging.warning(f"⚠️ 用户信息保存到数据库失败：@{screen_name}")
+                        self.logger.warning(f"⚠️ 用户信息保存到数据库失败：@{screen_name}")
             except Exception as e:
-                logging.warning(f"保存用户信息到数据库时出错: {e}")
+                self.logger.warning(f"保存用户信息到数据库时出错: {e}")
             
             # 步骤5: 写入文件缓存
             with open(cache_path, 'w', encoding='utf-8') as f:
                 json.dump(user_info, f, ensure_ascii=False, indent=2)
             
-            logging.info(f"✅ 获取用户信息成功: @{user_info['screenName']} (ID: {user_info['userId']})")
+            self.logger.info(f"✅ 获取用户信息成功: @{user_info['screenName']} (ID: {user_info['userId']})")
             return user_info
             
         except Exception as e:
-            logging.error(f"获取用户信息失败: {e}")
+            self.logger.error(f"获取用户信息失败: {e}")
             return None
     
     def _fetch_user_by_screen_name(self, screen_name: str) -> Optional[Dict[str, str]]:
         """通过用户名获取用户信息 - 使用X认证客户端"""
         try:
             if not self.twitter_client:
-                logging.error("X认证客户端未初始化")
+                self.logger.error("X认证客户端未初始化")
                 return None
             
             # 使用X认证客户端获取用户信息
@@ -171,11 +165,11 @@ class XSpiderOptimized:
                     "name": user_data.get('name', screen_name)
                 }
             else:
-                logging.error(f"未找到用户 @{screen_name}")
+                self.logger.error(f"未找到用户 @{screen_name}")
                 return None
                 
         except Exception as e:
-            logging.error(f"获取用户信息异常: {e}")
+            self.logger.error(f"获取用户信息异常: {e}")
             return None
     
     def transform_tweet(self, item: Dict[str, Any], user_id: str, filter_retweets: bool = True, filter_quotes: bool = True) -> Optional[Dict[str, Any]]:
@@ -552,9 +546,9 @@ class XSpiderOptimized:
             # 1. 优先检查配置文件中的users，如果不为空则只爬取指定用户
             config_users = self.config.get("users", [])
             if config_users:
-                logging.info(f"📄 配置文件中指定了 {len(config_users)} 个用户，只爬取指定用户")
+                self.logger.info(f"📄 配置文件中指定了 {len(config_users)} 个用户，只爬取指定用户")
                 for user in config_users:
-                    logging.info(f"   - @{user}")
+                    self.logger.info(f"   - @{user}")
                 return config_users
             
             # 2. 如果配置文件为空，则从数据库获取关注的用户
@@ -562,22 +556,22 @@ class XSpiderOptimized:
                 followed_users = self.db_manager.get_followed_users()
                 
                 if followed_users:
-                    logging.info(f"📦 从数据库获取到 {len(followed_users)} 个关注用户")
+                    self.logger.info(f"📦 从数据库获取到 {len(followed_users)} 个关注用户")
                     user_list = [user['screen_name'] for user in followed_users]
                     
                     # 显示用户列表
                     for user in followed_users:
-                        logging.info(f"   - @{user['screen_name']} (粉丝: {user['followers_count']}, 推文: {user['statuses_count']})")
+                        self.logger.info(f"   - @{user['screen_name']} (粉丝: {user['followers_count']}, 推文: {user['statuses_count']})")
                     
                     return user_list
             
             # 3. 都没有则返回空列表
-            logging.warning("⚠️ 未找到任何需要爬取的用户")
-            logging.info("💡 请在config.json中配置users或在member_x表中设置follow=1的用户")
+            self.logger.warning("⚠️ 未找到任何需要爬取的用户")
+            self.logger.info("💡 请在config.json中配置users或在member_x表中设置follow=1的用户")
             return []
             
         except Exception as e:
-            logging.error(f"获取用户列表失败: {e}")
+            self.logger.error(f"获取用户列表失败: {e}")
             # 降级到配置文件
             return self.config.get("users", [])
 
@@ -635,7 +629,7 @@ class XSpiderOptimized:
             logging.error("❌ 没有找到需要爬取的用户，程序退出")
             return []
         
-        logging.info(f"🚀 开始爬取 {len(users)} 个用户的推文")
+        self.logger.info(f"🚀 开始爬取 {len(users)} 个用户的推文")
         
         all_results = []
         

@@ -1,5 +1,5 @@
 import json
-import logging
+from base import database_logger as logging
 from datetime import datetime
 
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, BigInteger

@@ -1,8 +1,7 @@
 """
-Base模块 - 基础配置和数据库管理
+Base module initialization
+Import common utilities and loggers
 """
+from utils.log import global_logger, database_logger, spider_logger, x_logger
 
-from .database import DatabaseManager, MemberXhs
-from .config import BaseConfig
-
-__all__ = ['DatabaseManager', 'MemberXhs', 'BaseConfig']
+__all__ = ['global_logger', 'database_logger', 'spider_logger', 'x_logger']

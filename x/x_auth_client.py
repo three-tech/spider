@@ -6,7 +6,7 @@ X认证客户端 - 完全参考TypeScript版本的twitter-openapi-typescript实�
 
 import requests
 import json
-import logging
+from base import x_logger as logging
 from typing import Dict, Optional, Any, List
 import time
 import re

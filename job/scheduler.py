@@ -4,7 +4,6 @@ X平台爬虫定时任务调度器
 
 import schedule
 import time
-import logging
 import threading
 from datetime import datetime
 from .tasks import crawl_followed_users_task, xhs_auto_publish_task
@@ -24,16 +23,9 @@ class XSpiderScheduler:
         self.running = False
         self.scheduler_thread = None
         
-        # 配置日志
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler('../logs/scheduler.log', encoding='utf-8'),
-                logging.StreamHandler()
-            ]
-        )
-        self.logger = logging.getLogger(__name__)
+        # 配置日志 - 使用统一的loguru日志系统
+        from base.logger import get_logger
+        self.logger = get_logger(__name__)
         
     def setup_jobs(self):
         """设置定时任务"""

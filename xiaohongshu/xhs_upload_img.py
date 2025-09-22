@@ -5,7 +5,7 @@ from pathlib import Path
 
 from playwright.async_api import async_playwright
 
-from base import MemberXhs
+from base.database import MemberXhs
 from conf import LOCAL_CHROME_PATH, BASE_DIR
 from utils.base_social_media import set_init_script
 from utils.log import xiaohongshu_logger
@@ -152,7 +152,7 @@ class XiaoHongShuImg(object):
         await page.get_by_role("textbox").nth(1).fill(content)
 
         # 保持页面打开一段时间以便观察
-        time.sleep(60)
+        time.sleep(600)
 
     def _remove_links(self, text):
         """

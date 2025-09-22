@@ -3,9 +3,9 @@ X平台爬虫定时任务具体实现
 """
 
 import json
-import logging
 import os
 import sys
+from base.logger import get_logger
 from datetime import datetime, timedelta
 
 # 添加项目根目录到路径，以便导入base模块
@@ -17,7 +17,7 @@ x_module_path = os.path.join(project_root, 'x')
 sys.path.insert(0, x_module_path)
 
 # 导入模块
-from base.database import DatabaseManager
+from base.database import DatabaseManager, MemberXhs
 from base.logger import get_logger
 from base.utils import ImageDownloadManager
 from sms.notification_manager import get_notification_manager
@@ -34,7 +34,7 @@ def crawl_followed_users_task(config_path: str = None):
     Returns:
         dict: 任务执行结果
     """
-    logger = logging.getLogger(__name__)
+    logger = get_logger(__name__)
 
     try:
         # 如果没有指定配置文件路径，使用默认路径
@@ -72,7 +72,7 @@ def crawl_followed_users_task(config_path: str = None):
 
         # 遍历每个关注的用户
         for user in followed_users:
-            screen_name = user.get('screen_name')
+            screen_name = user.screen_name
 
             try:
                 logger.info(f"🔍 开始爬取用户: @{screen_name}")
@@ -162,7 +162,7 @@ def cleanup_old_tweets_task(days=30):
     Returns:
         dict: 清理结果
     """
-    logger = logging.getLogger(__name__)
+    logger = get_logger(__name__)
 
     try:
         db = DatabaseManager()
@@ -198,7 +198,7 @@ def backup_database_task():
     Returns:
         dict: 备份结果
     """
-    logger = logging.getLogger(__name__)
+    logger = get_logger(__name__)
 
     try:
         # 这里可以实现数据库备份逻辑
@@ -271,15 +271,10 @@ def xhs_auto_publish_task(config_path='config.json'):
 
         # 遍历每个小红书会员
         for xhs_member in xhs_members:
-            # 检查 xhs_member 是字典还是对象
-            if hasattr(xhs_member, 'xhs_id'):
-                xhs_id = xhs_member.xhs_id
-                user_name = xhs_member.userName
-                xhs_tags = xhs_member.tags or '' if hasattr(xhs_member, 'tags') else ''
-            else:
-                xhs_id = xhs_member.get('xhs_id')
-                user_name = xhs_member.get('userName')
-                xhs_tags = xhs_member.get('tags') or ''
+            # MemberXhs 是 SQLAlchemy 对象，直接访问属性
+            xhs_id = xhs_member.xhs_id
+            user_name = xhs_member.userName
+            xhs_tags = xhs_member.tags or '' if hasattr(xhs_member, 'tags') else ''
 
             try:
                 logger.info(f"🔍 处理小红书会员: {user_name} (ID: {xhs_id})")
@@ -306,7 +301,7 @@ def xhs_auto_publish_task(config_path='config.json'):
                     if hasattr(user, 'screen_name'):
                         unique_x_users[user.screen_name] = user
                     else:
-                        unique_x_users[user.get('screen_name')] = user
+                        unique_x_users[user.screen_name] = user
                 matching_x_users = list(unique_x_users.values())
 
                 if not matching_x_users:
@@ -321,15 +316,14 @@ def xhs_auto_publish_task(config_path='config.json'):
                     if hasattr(user, 'screen_name'):
                         matching_screen_names.append(user.screen_name)
                     else:
-                        matching_screen_names.append(user.get('screen_name'))
+                        matching_screen_names.append(user.screen_name)
                 unpublished_tweet = db.get_unpublished_tweet_by_xhs_member(xhs_id, matching_screen_names)
 
                 if unpublished_tweet:
                     # 检查 unpublished_tweet 是字典还是对象
                     if hasattr(unpublished_tweet, 'screenName'):
                         logger.info(f"📝 找到未发布推文，来自用户: @{unpublished_tweet.screenName}")
-                    else:
-                        logger.info(f"📝 找到未发布推文，来自用户: @{unpublished_tweet.get('screenName')}")
+                    logger.info(f"📝 找到未发布推文，来自用户: @{unpublished_tweet.screenName}")
 
                 if not unpublished_tweet:
                     logger.warning(f"⚠️ 没有找到未发布的推文")
@@ -339,15 +333,13 @@ def xhs_auto_publish_task(config_path='config.json'):
                 if hasattr(unpublished_tweet, 'fullText'):
                     title = unpublished_tweet.fullText[:50] + "..." if unpublished_tweet.fullText else ""
                     content = unpublished_tweet.fullText or ""
-                else:
-                    title = unpublished_tweet.get('fullText', '')[:50] + "..." if unpublished_tweet.get('fullText') else ""
-                    content = unpublished_tweet.get('fullText') or ""
+                title = unpublished_tweet.fullText[:50] + "..." if unpublished_tweet.fullText else ""
+                content = unpublished_tweet.fullText or ""
 
                 # 处理图片路径 - 下载到本地
                 if hasattr(unpublished_tweet, 'images'):
                     images = unpublished_tweet.images or ""
-                else:
-                    images = unpublished_tweet.get('images') or ""
+                images = unpublished_tweet.images or ""
                 if not images:
                     logger.warning(f"⚠️ 推文没有图片，跳过发布")
                     continue
@@ -391,19 +383,18 @@ def xhs_auto_publish_task(config_path='config.json'):
                                 tweet_publish_time = unpublished_tweet.publishTime
                                 tweet_content = unpublished_tweet.fullText or ""
                                 tweet_author = unpublished_tweet.screenName
-                            else:
-                                tweet_publish_time = unpublished_tweet.get('publishTime')
-                                tweet_content = unpublished_tweet.get('fullText') or ""
-                                tweet_author = unpublished_tweet.get('screenName')
+                            tweet_publish_time = unpublished_tweet.publishTime
+                            tweet_content = unpublished_tweet.fullText or ""
+                            tweet_author = unpublished_tweet.screenName
 
                             # 发送通知
                             notification_result = notification_manager.send_xhs_publish_notification(
-                                xhs_account=user_name,
+                                xhs_account=str(user_name),
                                 image_count=len(image_urls),
                                 image_paths=image_urls,
-                                tweet_publish_time=tweet_publish_time,
-                                tweet_content=tweet_content,
-                                tweet_author=tweet_author
+                                tweet_publish_time=str(tweet_publish_time),
+                                tweet_content=str(tweet_content),
+                                tweet_author=str(tweet_author)
                             )
 
                             if notification_result.get('feishu', {}).get('success'):
@@ -426,13 +417,13 @@ def xhs_auto_publish_task(config_path='config.json'):
                     from xiaohongshu.xhs_upload_img import XiaoHongShuImg
 
                     xhs_uploader = XiaoHongShuImg(
-                        user_name=user_name,
+                        user_name=str(user_name),
                         title=title,
                         file_path=file_path,
                         tags=publish_tags,
                         member_xhs=xhs_member,
                         publish_date=publish_date,
-                        content=tweet_content,
+                        content=str(tweet_content),
                         headless=False  # 后台运行
                     )
 
@@ -443,8 +434,7 @@ def xhs_auto_publish_task(config_path='config.json'):
                         # 标记推文为已发布
                         if hasattr(unpublished_tweet, 'id'):
                             db.mark_tweet_as_published(unpublished_tweet.id, xhs_id)
-                        else:
-                            db.mark_tweet_as_published(unpublished_tweet.get('id'), xhs_id)
+                        db.mark_tweet_as_published(unpublished_tweet.id, xhs_id)
 
                         total_published += 1
                         successful_members += 1
