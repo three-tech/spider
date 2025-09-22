@@ -5,6 +5,7 @@ from pathlib import Path
 
 from playwright.async_api import async_playwright
 
+from base import MemberXhs
 from conf import LOCAL_CHROME_PATH, BASE_DIR
 from utils.base_social_media import set_init_script
 from utils.log import xiaohongshu_logger
@@ -15,9 +16,12 @@ xhs_cookie_path = Path(BASE_DIR / "cookies" / "xiaohongshu")
 
 class XiaoHongShuImg(object):
 
-    def __init__(self, user_name, title, file_path, tags, publish_date, headless=False):
+    def __init__(self, user_name, title, file_path, tags, publish_date, member_xhs: MemberXhs, content=None,
+                 headless=False):
         # 初始化笔记标题
-        self.title = title
+        self.title = self._remove_links(title)
+        # 初始化笔记内容
+        self.content = self._remove_links(content or "")
         # 处理文件路径，将逗号分隔的路径转换为列表
         self.file_path = file_path.split(',')
         # 初始化标签列表
@@ -31,6 +35,7 @@ class XiaoHongShuImg(object):
         self.headless = headless
         self.user_name = user_name
         self.qr_path = f"{xhs_cookie_path}/{self.user_name}-qrcode.png"
+        self.member_xhs = member_xhs
         self.local_executable_path = LOCAL_CHROME_PATH
 
     async def cookie_auth(self):
@@ -138,9 +143,34 @@ class XiaoHongShuImg(object):
         # await page.get_by_role("button", name="Choose File").click()
         await page.get_by_role("button", name="Choose File").set_input_files(self.file_path)
         await page.get_by_role("textbox", name="填写标题会有更多赞哦～").click()
-        await page.get_by_role("textbox", name="填写标题会有更多赞哦～").fill("sdfsfs")
+        await page.get_by_role("textbox", name="填写标题会有更多赞哦～").fill(self.title)
         await page.get_by_role("textbox").nth(1).click()
-        await page.get_by_role("textbox").nth(1).fill("sdfsd")
+        content = f"""
+        {self.content}
+        {self.member_xhs.topic}
+        """
+        await page.get_by_role("textbox").nth(1).fill(content)
 
         # 保持页面打开一段时间以便观察
         time.sleep(60)
+
+    def _remove_links(self, text):
+        """
+        清除文本中的超链接
+        Args:
+            text: 输入文本
+        Returns:
+            清除超链接后的文本
+        """
+        if not text:
+            return text
+            
+        import re
+        # 移除URL链接
+        text = re.sub(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', '', text)
+        # 移除HTML标签
+        text = re.sub(r'<[^>]+>', '', text)
+        # 移除Markdown链接
+        text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+        
+        return text.strip()
