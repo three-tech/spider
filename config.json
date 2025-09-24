@@ -24,7 +24,7 @@
   "sms": {
     "feishu": {
       "enabled": true,
-      "webhook_url": "https://open.feishu.cn/open-apis/bot/v2/hook/4b25ead1-92e6-408d-8a8b-7709b99311f3",
+      "webhook_url": "",
       "secret": ""
     }
   },

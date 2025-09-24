@@ -27,8 +27,8 @@
     "database": "resource"
   },
   "api": {
-    "auth_token": "65e092a9d220b41ce65bd81ace8f5de24f8b9166",
-    "csrf_token": "42b34b6019060961baa4168fdf01724b71ea2a8bf7ca5e0ae999306257310818dd7368b1806030db81161e24e8b5777335b19881139ee98096854a21d9b31e942dd9d612a3054a4c3855e13401de31e4",
+    "auth_token": "",
+    "csrf_token": "",
     "guest_token": "",
     "rate_limit": {
       "requests_per_minute": 12,
