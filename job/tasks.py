@@ -372,20 +372,16 @@ def xhs_auto_publish_task(config_path='config.json'):
                     # 发布时间设置为当前时间
                     publish_date = datetime.now().strftime('%Y年%m月%d日 %H:%M')
 
+                    # 准备推文内容信息
+                    tweet_publish_time = unpublished_tweet.publishTime
+                    tweet_content = unpublished_tweet.fullText or ""
+                    tweet_author = unpublished_tweet.screenName
+
                     # 发送飞书通知
                     try:
                         notification_manager = get_notification_manager()
                         if notification_manager.is_notification_enabled():
                             logger.info("📤 发送飞书通知...")
-
-                            # 准备通知信息
-                            if hasattr(unpublished_tweet, 'publishTime'):
-                                tweet_publish_time = unpublished_tweet.publishTime
-                                tweet_content = unpublished_tweet.fullText or ""
-                                tweet_author = unpublished_tweet.screenName
-                            tweet_publish_time = unpublished_tweet.publishTime
-                            tweet_content = unpublished_tweet.fullText or ""
-                            tweet_author = unpublished_tweet.screenName
 
                             # 发送通知
                             notification_result = notification_manager.send_xhs_publish_notification(
@@ -423,7 +419,7 @@ def xhs_auto_publish_task(config_path='config.json'):
                         tags=publish_tags,
                         member_xhs=xhs_member,
                         publish_date=publish_date,
-                        content=str(tweet_content),
+                        content=tweet_content,
                         headless=False  # 后台运行
                     )
 
