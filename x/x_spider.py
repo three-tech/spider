@@ -12,15 +12,14 @@ import time
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any, Generator
 
+from x.x_auth_client import create_x_auth_client
+
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # 现在导入base模块
 from base.database import DatabaseManager
-try:
-    from x_auth_client import create_x_auth_client, XAuthClient
-except ImportError:
-    from x_auth_client import create_x_auth_client, XAuthClient
+
 
 class XSpider:
     def __init__(self):
@@ -63,9 +62,7 @@ class XSpider:
         """设置X认证客户端"""
         try:
             # 从统一配置中获取X平台配置
-            x_config = self.config.get('x', {})
-            api_config = x_config.get('api', {})
-            auth_token = api_config.get('auth_token', "")
+            auth_token = self.config.get_x_config().get('auth_token')
 
             if not auth_token:
                 self.logger.error("未配置auth_token，无法初始化X客户端", component="authentication")
@@ -135,8 +132,8 @@ class XSpider:
                 json.dump(user_info, f, ensure_ascii=False, indent=2)
 
             self.logger.info("获取用户信息成功",
-                           screen_name=user_info['screenName'],
-                           user_id=user_info['userId'])
+                             screen_name=user_info['screenName'],
+                             user_id=user_info['userId'])
             return user_info
 
         except Exception as e:
@@ -167,104 +164,33 @@ class XSpider:
             self.logger.error("获取用户信息异常", error=str(e))
             return None
 
-    def transform_tweet(self, item: Dict[str, Any], user_id: str, filter_retweets: bool = True, filter_quotes: bool = True) -> Optional[Dict[str, Any]]:
-        """转换推文数据 - 参考TypeScript版本的transformTweet函数"""
+    def transform_tweet(self, item: Dict[str, Any], user_id: str, filter_retweets: bool = True,
+                        filter_quotes: bool = True) -> Optional[Dict[str, Any]]:
+        """转换推文数据 - 增强转发推文处理功能"""
         try:
-            # 调试：打印推文数据结构的关键部分
-            logging.debug(f"推文数据键: {list(item.keys())}")
-            if isinstance(item, dict) and 'legacy' in item:
-                logging.debug(f"legacy键: {list(item['legacy'].keys())}")
-            # 安全获取字段值
-            def safe_get(path: str, default_value: Any = '') -> Any:
-                keys = path.split('.')
-                value = item
-                for key in keys:
-                    if isinstance(value, dict) and key in value:
-                        value = value[key]
-                    else:
-                        return default_value
-                return value
-
-            # 提取推文内容 - 修复字段名
-            full_text = safe_get('legacy.full_text', '')
-
-            # 过滤转推
-            if filter_retweets and full_text.strip().startswith("RT @"):
+            # 快速失败检查
+            if not self._should_process_tweet(item, filter_retweets, filter_quotes):
                 return None
 
-            # 过滤引用推文
-            is_quote_status = safe_get('legacy.is_quote_status', False)
-            if filter_quotes and is_quote_status:
+            # 提取基础信息
+            full_text = self._safe_get(item, 'legacy.full_text', '')
+            publish_time = self._get_publish_time(item)
+            user_info = self._extract_user_info(item)
+
+            # 检查必要字段
+            if not self._has_required_fields(user_info, full_text):
                 return None
 
-            # 处理发布时间 - 修复时间字段获取
-            created_at = safe_get('legacy.created_at', '')
-            publish_time = self.convert_to_beijing_time(created_at)
-            if not publish_time:
-                logging.warning(f"🕒 时间解析失败: {created_at}")
-                # 不返回None，使用当前时间作为备选
-                publish_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-
-            # 用户信息 - 修复字段名
-            user = {
-                "screenName": safe_get('core.user_results.result.legacy.screen_name', ''),
-                "name": safe_get('core.user_results.result.legacy.name', '')
-            }
-
-            # 多媒体内容处理 - 修复字段名
-            media_items = safe_get('legacy.extended_entities.media', [])
-
-            # 如果扩展媒体实体为空，尝试基础媒体实体
-            if not media_items:
-                media_items = safe_get('legacy.entities.media', [])
-
-            # 图片提取 - 修复字段名
-            images = []
-            for media in media_items:
-                if media.get('type') == 'photo':
-                    # 修复字段名：media_url_https 而不是 mediaUrlHttps
-                    media_url = media.get('media_url_https')
-                    if media_url:
-                        images.append(media_url)
-                        logging.debug(f"📸 提取图片: {media_url}")
-
-            # 视频提取 - 修复字段名
-            videos = []
-            for media in media_items:
-                if media.get('type') in ['video', 'animated_gif']:
-                    # 修复字段名：video_info 而不是 videoInfo
-                    video_info = media.get('video_info', {})
-                    variants = video_info.get('variants', [])
-                    # 选择最高质量的mp4视频 - 修复字段名
-                    mp4_variants = [v for v in variants if v.get('content_type') == 'video/mp4']
-                    if mp4_variants:
-                        best_variant = max(mp4_variants, key=lambda x: x.get('bitrate', 0))
-                        videos.append(best_variant['url'])
-                        logging.debug(f"🎬 提取视频: {best_variant['url'][:50]}...")
-
-            # 链接处理
-            expand_urls = []
-            urls = safe_get('legacy.entities.urls', [])
-            for url in urls:
-                expanded_url = url.get('expandedUrl')
-                if expanded_url:
-                    expand_urls.append(expanded_url)
-
-            # 构造推文URL - 修复字段名
-            tweet_id = safe_get('legacy.id_str', '') or safe_get('rest_id', '')
-            if not tweet_id or not user['screenName']:
-                # 调试信息：打印数据结构
-                logging.warning(f"❌ 无效推文结构 - tweet_id: {tweet_id}, screenName: {user['screenName']}")
-                return None
-
-            tweet_url = f"https://x.com/{user['screenName']}/status/{tweet_id}"
+            # 提取媒体和URL
+            media_data = self._extract_media_data(item)
+            tweet_url = self._build_tweet_url(user_info, item)
 
             logging.info(f"✅ 转换成功: {tweet_url}")
 
             return {
-                "screenName": user['screenName'],
-                "images": images,
-                "videos": videos,
+                "screenName": user_info["screenName"],
+                "images": media_data["images"],
+                "videos": media_data["videos"],
                 "tweetUrl": tweet_url,
                 "fullText": full_text,
                 "publishTime": publish_time
@@ -273,6 +199,175 @@ class XSpider:
         except Exception as e:
             logging.error(f"转换推文数据失败: {e}")
             return None
+
+    def _is_valid_tweet_structure(self, item: Dict[str, Any]) -> bool:
+        """检查推文数据结构是否有效"""
+        if not isinstance(item, dict):
+            return False
+
+        logging.debug(f"推文数据键: {list(item.keys())}")
+        if 'legacy' in item:
+            logging.debug(f"legacy键: {list(item['legacy'].keys())}")
+
+        return True
+
+    def _should_process_tweet(self, item: Dict[str, Any], filter_retweets: bool, filter_quotes: bool) -> bool:
+        """判断是否应该处理推文 - 快速失败策略"""
+        # 检查数据结构
+        if not self._is_valid_tweet_structure(item):
+            return False
+
+        full_text = self._safe_get(item, 'legacy.full_text', '')
+
+        # 过滤转推
+        if filter_retweets and full_text.strip().startswith("RT @"):
+            return False
+
+        # 过滤引用推文
+        if filter_quotes and self._safe_get(item, 'legacy.is_quote_status', False):
+            return False
+
+        return True
+
+    def _safe_get(self, obj: Dict[str, Any], path: str, default_value: Any = '') -> Any:
+        """安全获取嵌套字典值"""
+        keys = path.split('.')
+        value = obj
+        for key in keys:
+            if isinstance(value, dict) and key in value:
+                value = value[key]
+            else:
+                return default_value
+        return value
+
+    def _get_publish_time(self, item: Dict[str, Any]) -> str:
+        """获取发布时间"""
+        created_at = self._safe_get(item, 'legacy.created_at', '')
+        publish_time = self.convert_to_beijing_time(created_at)
+
+        if not publish_time:
+            logging.warning(f"🕒 时间解析失败: {created_at}")
+            publish_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+        return publish_time
+
+    def _extract_user_info(self, item: Dict[str, Any]) -> Dict[str, str]:
+        """提取用户信息"""
+        return {
+            "screenName": self._safe_get(item, 'core.user_results.result.legacy.screen_name', ''),
+            "name": self._safe_get(item, 'core.user_results.result.legacy.name', '')
+        }
+
+    def _has_required_fields(self, user_info: Dict[str, str], full_text: str) -> bool:
+        """检查必要字段是否存在"""
+        if not user_info["screenName"] or not full_text:
+            logging.warning(f"❌ 缺少必要字段 - screenName: {user_info['screenName']}, full_text: {bool(full_text)}")
+            return False
+        return True
+
+    def _extract_media_data(self, item: Dict[str, Any]) -> Dict[str, List[str]]:
+        """提取媒体数据"""
+        media_items = self._extract_all_media_items(item)
+        images = self._extract_images(media_items)
+        videos = self._extract_videos(media_items)
+
+        return {
+            "images": images,
+            "videos": videos
+        }
+
+    def _extract_all_media_items(self, item: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """提取所有媒体项目"""
+        # 优先尝试扩展媒体实体
+        media_items = self._safe_get(item, 'legacy.extended_entities.media', [])
+
+        # 如果为空，尝试基础媒体实体
+        if not media_items:
+            media_items = self._safe_get(item, 'legacy.entities.media', [])
+
+        # 如果是转发推文且需要处理转发媒体
+        if self._should_extract_retweet_media(item):
+            retweet_media = self._extract_retweet_media(item)
+            if retweet_media:
+                media_items = retweet_media
+                logging.debug("🔄 从转发源推文提取媒体内容")
+
+        return media_items
+
+    def _should_extract_retweet_media(self, item: Dict[str, Any]) -> bool:
+        """判断是否应该提取转发推文的媒体"""
+        full_text = self._safe_get(item, 'legacy.full_text', '')
+        is_retweet = full_text.strip().startswith("RT @")
+
+        if not is_retweet or not self.db_manager:
+            return False
+
+        user_info = self._extract_user_info(item)
+        db_user = self.db_manager.get_member_by_screen_name(user_info["screenName"])
+
+        return db_user and db_user.process_retweets
+
+    def _extract_retweet_media(self, item: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:
+        """从转发源推文提取媒体"""
+        retweeted_status = self._safe_get(item, 'legacy.retweeted_status_result.result', {})
+        if not retweeted_status:
+            return None
+
+        # 尝试扩展媒体实体
+        retweet_media = self._safe_get(retweeted_status, 'legacy.extended_entities.media', [])
+        if not retweet_media:
+            retweet_media = self._safe_get(retweeted_status, 'legacy.entities.media', [])
+
+        return retweet_media if retweet_media else None
+
+    def _extract_images(self, media_items: List[Dict[str, Any]]) -> List[str]:
+        """提取图片URL"""
+        images = []
+        for media in media_items:
+            if media.get('type') == 'photo':
+                media_url = media.get('media_url_https')
+                if media_url:
+                    images.append(media_url)
+                    logging.debug(f"📸 提取图片: {media_url}")
+        return images
+
+    def _extract_videos(self, media_items: List[Dict[str, Any]]) -> List[str]:
+        """提取视频URL"""
+        videos = []
+        for media in media_items:
+            if media.get('type') in ['video', 'animated_gif']:
+                video_url = self._extract_best_video_url(media)
+                if video_url:
+                    videos.append(video_url)
+        return videos
+
+    def _extract_best_video_url(self, media: Dict[str, Any]) -> Optional[str]:
+        """提取最佳质量的视频URL"""
+        video_info = media.get('video_info', {})
+        variants = video_info.get('variants', [])
+
+        mp4_variants = [v for v in variants if v.get('content_type') == 'video/mp4']
+        if not mp4_variants:
+            return None
+
+        best_variant = max(mp4_variants, key=lambda x: x.get('bitrate', 0))
+        logging.debug(f"🎬 提取视频: {best_variant['url'][:50]}...")
+        return best_variant['url']
+
+    def _extract_urls(self, item: Dict[str, Any]) -> List[str]:
+        """提取扩展URL"""
+        expand_urls = []
+        urls = self._safe_get(item, 'legacy.entities.urls', [])
+        for url in urls:
+            expanded_url = url.get('expandedUrl')
+            if expanded_url:
+                expand_urls.append(expanded_url)
+        return expand_urls
+
+    def _build_tweet_url(self, user_info: Dict[str, str], item: Dict[str, Any]) -> str:
+        """构造推文URL"""
+        tweet_id = self._safe_get(item, 'legacy.id_str', '') or self._safe_get(item, 'rest_id', '')
+        return f"https://x.com/{user_info['screenName']}/status/{tweet_id}"
 
     def convert_to_beijing_time(self, date_str: str) -> Optional[str]:
         """转换到北京时间"""
@@ -296,7 +391,8 @@ class XSpider:
             # 返回当前时间作为备选
             return datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
-    def tweet_cursor_generator(self, user_id: str, limit: int = 50, content_type: str = 'tweets') -> Generator[Dict[str, Any], None, None]:
+    def tweet_cursor_generator(self, user_id: str, limit: int = 50, content_type: str = 'tweets') -> Generator[
+        Dict[str, Any], None, None]:
         """分页生成器 - 模拟API分页请求"""
         cursor = None
         count = 0
@@ -375,112 +471,232 @@ class XSpider:
             logging.error(f"API请求失败: {e}")
             return {"data": [], "cursor": None}
 
-
-
-    def process_user_tweets(self, screen_name: str) -> List[Dict[str, Any]]:
-        """处理用户推文的主流程 - 支持增量爬取"""
+    def process_user_tweets(self, user_config: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """处理用户推文的主流程 - 支持增量爬取和用户级配置"""
+        screen_name = user_config['screen_name']
         start_time = time.time()
-        logging.info("=" * 60)
-        logging.info(f"🚀 开始处理用户 @{screen_name}")
+        self.logger.info("=" * 60)
+        self.logger.info(f"🚀 开始处理用户 @{screen_name}")
 
         try:
-            # 步骤1: 获取用户信息
-            force_refresh = self.config.get("force_refresh", False)
-            user_info = self.get_user_info(screen_name, force_refresh)
+            # 快速失败：获取用户信息
+            user_info = self._get_user_info_for_processing(screen_name)
             if not user_info:
-                logging.error(f"无法获取用户 @{screen_name} 的信息")
                 return []
 
-            # 步骤2: 检查增量爬取条件
-            last_tweet_time = None
-            if self.db_manager:
-                crawl_info = self.db_manager.get_user_last_crawl_info(screen_name)
-                if crawl_info and 'last_tweet_time' in crawl_info:
-                    last_tweet_time = crawl_info['last_tweet_time']
-                    logging.info(f"📅 上次爬取的最新推文时间: {last_tweet_time}")
-                    logging.info("🔄 启用增量爬取模式，只获取新推文")
-                else:
-                    logging.info("🆕 首次爬取该用户，获取所有推文")
-            else:
-                logging.info("🆕 数据库未初始化，获取所有推文")
+            # 获取爬取配置 (现在基于用户配置)
+            crawl_config = self._prepare_crawl_config(user_config)
+            if not crawl_config:
+                return []
 
-            # 步骤3: 获取配置参数
-            x_config = self.config.get('x', {})
-            max_tweets = x_config.get("max_tweets_per_user", 50)
-            filter_retweets = not x_config.get("include_retweets", False)
-            filter_quotes = True  # 默认过滤引用推文
-            content_type = "tweets"  # 或 "media"
+            # 处理推文数据
+            all_tweets = self._process_tweets_with_incremental_crawl(user_info, crawl_config)
 
-            # 步骤4: 获取并处理推文
-            logging.info("⏳ 开始获取推文数据...")
-            all_tweets = []
-            processed_count = 0
-            new_tweets_count = 0
-            latest_tweet_time = None
-
-            for item in self.tweet_cursor_generator(user_info['userId'], max_tweets, content_type):
-                # 转换推文数据
-                tweet_data = self.transform_tweet(item, user_info['userId'], filter_retweets, filter_quotes)
-                if tweet_data:
-                    # 解析推文时间
-                    tweet_time_str = tweet_data.get('publishTime', '')
-                    if tweet_time_str:
-                        try:
-                            # 转换为datetime对象进行比较
-                            tweet_time = datetime.strptime(tweet_time_str, '%Y-%m-%dT%H:%M:%S')
-
-                            # 记录最新推文时间
-                            if not latest_tweet_time or tweet_time > latest_tweet_time:
-                                latest_tweet_time = tweet_time
-
-                            # 增量爬取：如果推文时间早于或等于上次爬取时间，停止爬取
-                            if last_tweet_time and tweet_time <= last_tweet_time:
-                                logging.info(f"⏹️ 遇到已爬取的推文 ({tweet_time_str})，停止爬取")
-                                break
-                            else:
-                                new_tweets_count += 1
-
-                        except ValueError as e:
-                            logging.warning(f"⚠️ 推文时间解析失败: {tweet_time_str}, {e}")
-
-                    all_tweets.append(tweet_data)
-                    processed_count += 1
-
-            # 步骤5: 批量保存到数据库
-            success_count = 0
-            if all_tweets:
-                success_count = self.save_tweets_to_database(all_tweets)
-                logging.info(f"✅ 成功保存 {success_count} 条推文到数据库")
-
-            # 步骤6: 更新用户爬取信息
-            if self.db_manager:
-                if latest_tweet_time:
-                    self.db_manager.update_user_crawl_info(screen_name, latest_tweet_time)
-                    logging.info(f"📝 更新用户最新推文时间: {latest_tweet_time}")
-                else:
-                    # 即使没有新推文，也更新爬取时间
-                    self.db_manager.update_user_crawl_info(screen_name)
-                    logging.info("📝 更新用户爬取时间")
-            else:
-                logging.warning("⚠️ 数据库未初始化，无法更新爬取信息")
-
-            # 统计信息
-            time_cost = (time.time() - start_time)
-            logging.info(f"""
-🎉 处理完成！
-├── 用户：@{user_info['screenName']} (ID: {user_info['userId']})
-├── 获取：{len(all_tweets)} 条有效推文
-├── 新推文：{new_tweets_count} 条
-├── 保存：{success_count} 条到数据库
-├── 最新推文时间：{latest_tweet_time or '无'}
-├── 耗时：{time_cost:.1f} 秒
-            """)
+            # 保存结果并更新状态
+            self._save_and_update_crawl_info(screen_name, all_tweets, start_time, user_info)
 
             return all_tweets
 
         except Exception as e:
-            logging.error(f"❌ 处理用户 @{screen_name} 失败: {e}")
+            self.logger.error(f"❌ 处理用户 @{screen_name} 失败", error=str(e))
             return []
+
+    def _get_user_info_for_processing(self, screen_name: str) -> Optional[Dict[str, Any]]:
+        """获取用户信息 - 快速失败"""
+        force_refresh = self.config.get_x_config().get('force_refresh', False)
+        user_info = self.get_user_info(screen_name, force_refresh)
+
+        if not user_info:
+            logging.error(f"无法获取用户 @{screen_name} 的信息")
+            return None
+
+        return user_info
+
+    def _prepare_crawl_config(self, user_config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """根据用户配置准备爬取参数"""
+        screen_name = user_config['screen_name']
+        last_tweet_time = self._get_last_crawl_time(screen_name)
+
+        # process_retweets: 0=不处理(过滤), 1=处理(不过滤)
+        # filter_retweets: True=过滤, False=不过滤
+        # 因此 filter_retweets = not process_retweets
+        process_retweets = bool(user_config.get("process_retweets", False))
+        filter_retweets = not process_retweets
+        filter_quotes = bool(user_config.get("filter_quotes", True))
+
+        self.logger.info("应用用户级爬取配置",
+                         username=screen_name,
+                         process_retweets=process_retweets,
+                         filter_retweets=filter_retweets,
+                         filter_quotes=filter_quotes)
+
+        return {
+            "max_tweets": self.config.get_x_config().get("max_tweets_per_user", 50),
+            "filter_retweets": filter_retweets,
+            "filter_quotes": filter_quotes,
+            "content_type": "tweets",
+            "last_tweet_time": last_tweet_time
+        }
+
+    def _get_last_crawl_time(self, screen_name: str) -> Optional[datetime]:
+        """获取上次爬取时间"""
+        if not self.db_manager:
+            logging.info("🆕 数据库未初始化，获取所有推文")
+            return None
+
+        crawl_info = self.db_manager.get_user_last_crawl_info(screen_name)
+        if crawl_info and 'last_tweet_time' in crawl_info:
+            last_tweet_time = crawl_info['last_tweet_time']
+            logging.info(f"📅 上次爬取的最新推文时间: {last_tweet_time}")
+            logging.info("🔄 启用增量爬取模式，只获取新推文")
+            return last_tweet_time
+        else:
+            logging.info("🆕 首次爬取该用户，获取所有推文")
+            return None
+
+    def _process_tweets_with_incremental_crawl(self, user_info: Dict[str, Any],
+                                               crawl_config: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """处理推文数据，支持增量爬取"""
+        all_tweets = []
+        new_tweets_count = 0
+        latest_tweet_time = None
+        last_tweet_time = crawl_config.get("last_tweet_time")
+
+        for item in self.tweet_cursor_generator(user_info['userId'],
+                                                crawl_config["max_tweets"],
+                                                crawl_config["content_type"]):
+
+            # 处理单个推文项目
+            tweet_data = self._process_single_tweet_item(item, user_info, crawl_config)
+            if not tweet_data:
+                continue
+
+            # 检查是否应该停止爬取
+            if self._should_stop_crawling(tweet_data, last_tweet_time, latest_tweet_time):
+                break
+
+            # 更新统计信息
+            all_tweets.append(tweet_data)
+            new_tweets_count = self._update_new_tweets_count(tweet_data, last_tweet_time, new_tweets_count)
+            latest_tweet_time = self._update_latest_tweet_time(tweet_data, latest_tweet_time)
+
+        logging.info(f"📊 处理完成 - 有效推文: {len(all_tweets)}, 新推文: {new_tweets_count}")
+        return all_tweets
+
+    def _process_single_tweet_item(self, item: Dict[str, Any], user_info: Dict[str, Any],
+                                   crawl_config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """处理单个推文项目"""
+        tweet_data = self.transform_tweet(
+            item,
+            user_info['userId'],
+            crawl_config["filter_retweets"],
+            crawl_config["filter_quotes"]
+        )
+
+        return tweet_data if tweet_data else None
+
+    def _should_stop_crawling(self, tweet_data: Dict[str, Any], last_tweet_time: Optional[datetime],
+                              latest_tweet_time: Optional[datetime]) -> bool:
+        """判断是否应该停止爬取"""
+        if not last_tweet_time:
+            return False
+
+        tweet_time = self._parse_tweet_time(tweet_data.get('publishTime', ''))
+        if not tweet_time:
+            return False
+
+        # 如果推文时间早于或等于上次爬取时间，停止爬取
+        if tweet_time <= last_tweet_time:
+            logging.info(f"⏹️ 遇到已爬取的推文 ({tweet_data.get('publishTime', '')})，停止爬取")
+            return True
+
+        return False
+
+    def _parse_tweet_time(self, time_str: str) -> Optional[datetime]:
+        """解析推文时间"""
+        if not time_str:
+            return None
+
+        try:
+            return datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        except ValueError as e:
+            logging.warning(f"⚠️ 推文时间解析失败: {time_str}, {e}")
+            return None
+
+    def _update_new_tweets_count(self, tweet_data: Dict[str, Any], last_tweet_time: Optional[datetime],
+                                 current_count: int) -> int:
+        """更新新推文计数"""
+        if not last_tweet_time:
+            return current_count + 1
+
+        tweet_time = self._parse_tweet_time(tweet_data.get('publishTime', ''))
+        if tweet_time and tweet_time > last_tweet_time:
+            return current_count + 1
+
+        return current_count
+
+    def _update_latest_tweet_time(self, tweet_data: Dict[str, Any], current_latest: Optional[datetime]) -> Optional[
+        datetime]:
+        """更新最新推文时间"""
+        tweet_time = self._parse_tweet_time(tweet_data.get('publishTime', ''))
+        if not tweet_time:
+            return current_latest
+
+        if not current_latest or tweet_time > current_latest:
+            return tweet_time
+
+        return current_latest
+
+    def _save_and_update_crawl_info(self, screen_name: str, all_tweets: List[Dict[str, Any]],
+                                    start_time: float, user_info: Dict[str, Any]):
+        """保存数据并更新爬取信息"""
+        # 保存推文到数据库
+        success_count = self.save_tweets_to_database(all_tweets) if all_tweets else 0
+        logging.info(f"✅ 成功保存 {success_count} 条推文到数据库")
+
+        # 更新爬取信息
+        self._update_crawl_info(screen_name, all_tweets)
+
+        # 输出统计信息
+        self._log_processing_stats(screen_name, all_tweets, success_count, start_time, user_info)
+
+    def _update_crawl_info(self, screen_name: str, all_tweets: List[Dict[str, Any]]):
+        """更新爬取信息"""
+        if not self.db_manager:
+            logging.warning("⚠️ 数据库未初始化，无法更新爬取信息")
+            return
+
+        latest_tweet_time = self._get_latest_tweet_time_from_list(all_tweets)
+        if latest_tweet_time:
+            self.db_manager.update_user_crawl_info(screen_name, latest_tweet_time)
+            logging.info(f"📝 更新用户最新推文时间: {latest_tweet_time}")
+        else:
+            self.db_manager.update_user_crawl_info(screen_name)
+            logging.info("📝 更新用户爬取时间")
+
+    def _get_latest_tweet_time_from_list(self, tweets: List[Dict[str, Any]]) -> Optional[datetime]:
+        """从推文列表中获取最新时间"""
+        latest_time = None
+        for tweet in tweets:
+            tweet_time = self._parse_tweet_time(tweet.get('publishTime', ''))
+            if tweet_time and (not latest_time or tweet_time > latest_time):
+                latest_time = tweet_time
+        return latest_time
+
+    def _log_processing_stats(self, screen_name: str, all_tweets: List[Dict[str, Any]],
+                              success_count: int, start_time: float, user_info: Dict[str, Any]):
+        """记录处理统计信息"""
+        time_cost = (time.time() - start_time)
+        latest_tweet_time = self._get_latest_tweet_time_from_list(all_tweets)
+
+        logging.info(f"""
+🎉 处理完成！
+├── 用户：@{user_info['screenName']} (ID: {user_info['userId']})
+├── 获取：{len(all_tweets)} 条有效推文
+├── 保存：{success_count} 条到数据库
+├── 最新推文时间：{latest_tweet_time or '无'}
+├── 耗时：{time_cost:.1f} 秒
+        """)
 
     def save_tweets_to_database(self, tweets: List[Dict[str, Any]]) -> int:
         """批量保存推文到数据库"""
@@ -538,47 +754,47 @@ class XSpider:
         except Exception as e:
             logging.error(f"保存JSON备份失败: {e}")
 
-    def get_users_to_crawl(self):
-        """获取需要爬取的用户列表 - 优化配置逻辑"""
+    def get_users_to_crawl(self) -> List[Dict[str, Any]]:
+        """获取需要爬取的用户列表并包含其个人配置"""
         try:
-            # 1. 优先检查配置文件中的users，如果不为空则只爬取指定用户
+            users_to_crawl = []
             x_config = self.config.get('x', {})
             config_users = x_config.get("users", [])
+
             if config_users:
-                self.logger.info("配置文件中指定了用户数量", user_count=len(config_users), action="只爬取指定用户")
-                for user in config_users:
-                    self.logger.info("配置用户", username=user)
-                return config_users
+                self.logger.info("从配置文件加载指定用户", user_count=len(config_users))
+                if not self.db_manager:
+                    self.logger.error("数据库未初始化，无法获取用户配置")
+                    return []
+                for screen_name in config_users:
+                    user_info = self.db_manager.get_user_last_crawl_info(screen_name)
+                    if user_info:
+                        users_to_crawl.append(user_info)
+                    else:
+                        self.logger.warning("在数据库中未找到配置的用户，无法获取其爬取配置", username=screen_name)
+            else:
+                self.logger.info("配置文件未指定用户，从数据库获取所有关注的用户")
+                if self.db_manager:
+                    users_to_crawl = self.db_manager.get_followed_users()
 
-            # 2. 如果配置文件为空，则从数据库获取关注的用户
-            if self.db_manager:
-                followed_users = self.db_manager.get_followed_users()
+            if not users_to_crawl:
+                self.logger.warning("未找到需要爬取的用户", action="检查配置或数据库")
+                self.logger.info("配置提示",
+                                 config_location="config.toml中的x.users",
+                                 database_setting="member_x表中设置follow=1的用户")
+                return []
 
-                if followed_users:
-                    self.logger.info("从数据库获取关注用户", user_count=len(followed_users))
-                    user_list = [user['screen_name'] for user in followed_users]
-
-                    # 显示用户列表
-                    for user in followed_users:
-                        self.logger.info("关注用户详情",
-                                       username=user['screen_name'],
-                                       followers=user['followers_count'],
-                                       tweets=user['statuses_count'])
-
-                    return user_list
-
-            # 3. 都没有则返回空列表
-            self.logger.warning("未找到需要爬取的用户", action="检查配置")
-            self.logger.info("配置提示",
-                          config_location="config.toml中的x.users",
-                          database_setting="member_x表中设置follow=1的用户")
-            return []
+            self.logger.info(f"共找到 {len(users_to_crawl)} 个待爬取用户")
+            for user in users_to_crawl:
+                self.logger.info("待爬取用户",
+                                 username=user['screen_name'],
+                                 process_retweets=user.get('process_retweets'),
+                                 filter_quotes=user.get('filter_quotes'))
+            return users_to_crawl
 
         except Exception as e:
-            self.logger.error("获取用户列表失败", error=str(e))
-            # 降级到配置文件
-            x_config = self.config.get('x', {})
-            return x_config.get("users", [])
+            self.logger.error("获取待爬取用户列表失败", error=str(e))
+            return []
 
     def get_my_following_list(self):
         """获取我的完整关注列表 - 循环获取所有用户"""
@@ -627,26 +843,26 @@ class XSpider:
 
     def run(self):
         """运行爬虫主程序"""
-        # 获取需要爬取的用户列表
-        users = self.get_users_to_crawl()
+        # 获取需要爬取的用户列表及其配置
+        users_to_crawl = self.get_users_to_crawl()
 
-        if not users:
-            logging.error("❌ 没有找到需要爬取的用户，程序退出")
+        if not users_to_crawl:
+            self.logger.error("❌ 没有找到需要爬取的用户，程序退出")
             return []
 
-        self.logger.info("开始爬取用户推文", user_count=len(users))
+        self.logger.info("开始爬取用户推文", user_count=len(users_to_crawl))
 
         all_results = []
 
         try:
-            for username in users:
+            for user_config in users_to_crawl:
                 try:
                     # 处理单个用户
-                    user_tweets = self.process_user_tweets(username)
+                    user_tweets = self.process_user_tweets(user_config)
                     all_results.extend(user_tweets)
 
                 except Exception as e:
-                    logging.error(f"处理用户 {username} 时出错: {e}")
+                    self.logger.error(f"处理用户 {user_config.get('screen_name')} 时出错", error=str(e))
                     continue
 
             logging.info(f"🎉 全部完成！共处理 {len(all_results)} 条推文")
@@ -748,6 +964,7 @@ class XSpider:
         except Exception as e:
             logging.error(f"同步关注列表时出错: {e}")
             return 0
+
 
 if __name__ == "__main__":
     spider = XSpider()

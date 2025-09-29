@@ -47,6 +47,8 @@ class MemberX(Base):
     verified = Column('verified', Integer, default=0, comment='是否认证 0-否 1-是')
     protected = Column('protected', Integer, default=0, comment='是否保护 0-否 1-是')
     follow = Column('follow', Integer, default=0, comment='是否关注 0-否 1-是')
+    process_retweets = Column('process_retweets', Integer, default=0, comment='是否处理转发推文 0-否 1-是')
+    filter_quotes = Column('filter_quotes', Integer, default=1, comment='是否过滤引用推文 0-否 1-是')
     last_crawl_time = Column('last_crawl_time', DateTime, nullable=True, comment='最后爬取时间')
     last_tweet_time = Column('last_tweet_time', DateTime, nullable=True, comment='最新推文时间')
     account_created_at = Column('account_created_at', String(255), nullable=True, comment='账户创建时间')
@@ -474,7 +476,9 @@ class DatabaseManager:
                     'user_id': str(member.user_id),
                     'name': member.name,
                     'followers_count': member.followers_count,
-                    'statuses_count': member.statuses_count
+                    'statuses_count': member.statuses_count,
+                    'filter_quotes': member.filter_quotes,
+                    'process_retweets': member.process_retweets
                 })
             logging.info(f"获取到 {len(users)} 个关注的用户")
             return users
@@ -541,6 +545,8 @@ class DatabaseManager:
                     'account_created_at': member.account_created_at,
                     'tags': member.tags,
                     'follow': member.follow,
+                    'process_retweets': member.process_retweets,
+                    'filter_quotes': member.filter_quotes,
                     'last_crawl_time': member.last_crawl_time,
                     'last_tweet_time': member.last_tweet_time,
                     'create_time': member.create_time,

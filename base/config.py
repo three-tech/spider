@@ -129,6 +129,8 @@ class BaseConfig:
         """获取X平台配置"""
         return self.get('x', {})
     
+
+    
     def get_sms_config(self) -> Dict[str, Any]:
         """获取短信配置"""
         return self.get('sms', {})

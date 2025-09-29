@@ -462,12 +462,8 @@ class XAuthClient:
             # 如果没有提供screen_name，尝试从配置文件中读取
             if not screen_name:
                 try:
-                    import os
-                    config_path = os.path.join(os.path.dirname(__file__), 'config.json')
-                    if os.path.exists(config_path):
-                        with open(config_path, 'r', encoding='utf-8') as f:
-                            config = json.load(f)
-                            screen_name = config.get('current_user_screen_name')
+                    from base.config import config
+                    screen_name = config.get_x_config().get('current_user_screen_name')
                 except Exception as e:
                     logging.warning(f"无法从配置文件读取用户名: {e}")
 
