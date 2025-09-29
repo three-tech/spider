@@ -2,11 +2,11 @@
 X平台爬虫定时任务具体实现
 """
 
-import json
 import os
 import sys
 from base.logger import get_logger
 from datetime import datetime, timedelta
+from base.config import config
 
 # 添加项目根目录到路径，以便导入base模块
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,12 +24,12 @@ from sms.notification_manager import get_notification_manager
 from x.x_spider_optimized import XSpiderOptimized
 
 
-def crawl_followed_users_task(config_path: str = None):
+def crawl_followed_users_task(config_path: str | None = None):
     """
     爬取关注用户推文的定时任务
     
     Args:
-        config_path: 配置文件路径
+        config_path: 配置文件路径（向后兼容，现在通过ConfigManager统一管理）
         
     Returns:
         dict: 任务执行结果
@@ -37,15 +37,8 @@ def crawl_followed_users_task(config_path: str = None):
     logger = get_logger(__name__)
 
     try:
-        # 如果没有指定配置文件路径，使用默认路径
-        if config_path is None:
-            # 获取项目根目录的配置文件
-            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            config_path = os.path.join(project_root, 'config.json')
-
-        # 读取配置
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
+        # 使用统一的配置管理器
+        config = config.get_config()
 
         # 初始化数据库管理器
         db = DatabaseManager()
@@ -64,7 +57,7 @@ def crawl_followed_users_task(config_path: str = None):
         logger.info(f"📋 找到 {len(followed_users)} 个关注的用户")
 
         # 初始化爬虫
-        spider = XSpiderOptimized(config_path)
+        spider = XSpiderOptimized()
 
         total_tweets = 0
         successful_users = 0
@@ -222,7 +215,7 @@ def backup_database_task():
         }
 
 
-def xhs_auto_publish_task(config_path='config.json'):
+def xhs_auto_publish_task(config_path: str | None = None):
     """
     小红书自动发布任务
     
@@ -233,7 +226,7 @@ def xhs_auto_publish_task(config_path='config.json'):
     4. 调用XiaoHongShuImg的main方法发布
     
     Args:
-        config_path: 配置文件路径
+        config_path: 配置文件路径（向后兼容，现在通过ConfigManager统一管理）
         
     Returns:
         dict: 任务执行结果
@@ -241,13 +234,8 @@ def xhs_auto_publish_task(config_path='config.json'):
     logger = get_logger(__name__)
 
     try:
-        # 确保配置文件路径正确
-        if not os.path.isabs(config_path):
-            config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), config_path)
-
-        # 读取配置
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
+        # 使用统一的配置管理器
+        config = config.get_config()
 
         # 初始化数据库管理器
         db = DatabaseManager()

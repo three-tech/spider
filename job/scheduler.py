@@ -12,14 +12,14 @@ from base.logger import get_logger
 class XSpiderScheduler:
     """X平台爬虫定时任务调度器"""
     
-    def __init__(self, config_path='config.json'):
+    def __init__(self, config_path=None):
         """
         初始化调度器
         
         Args:
-            config_path: 配置文件路径
+            config_path: 配置文件路径（向后兼容，现在通过ConfigManager统一管理）
         """
-        self.config_path = config_path
+        self.config_path = config_path  # 保持向后兼容
         self.running = False
         self.scheduler_thread = None
         
@@ -53,8 +53,8 @@ class XSpiderScheduler:
             self.logger.info("🚀 开始执行定时爬取任务...")
             start_time = datetime.now()
             
-            # 执行爬取任务
-            result = crawl_followed_users_task(self.config_path)
+            # 执行爬取任务（向后兼容，传递config_path参数）
+            result = crawl_followed_users_task(str(self.config_path) if self.config_path else None)
             
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()
@@ -75,8 +75,8 @@ class XSpiderScheduler:
             self.logger.info("🚀 开始执行小红书自动发布任务...")
             start_time = datetime.now()
             
-            # 执行小红书发布任务
-            result = xhs_auto_publish_task(self.config_path)
+            # 执行小红书发布任务（向后兼容，传递config_path参数）
+            result = xhs_auto_publish_task(str(self.config_path) if self.config_path else None)
             
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()

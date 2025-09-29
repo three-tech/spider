@@ -6,18 +6,22 @@ from pathlib import Path
 from playwright.async_api import async_playwright
 
 from base.database import MemberXhs
-from conf import LOCAL_CHROME_PATH, BASE_DIR
+from base.config import config
 from utils.base_social_media import set_init_script
-from utils.log import xiaohongshu_logger
+from base.logger import get_logger
+
+xiaohongshu_logger = get_logger('xiaohongshu')
 
 open_url = "https://creator.xiaohongshu.com/publish/publish?source=official"
-xhs_cookie_path = Path(BASE_DIR / "cookies" / "xiaohongshu")
 
 
 class XiaoHongShuImg(object):
 
     def __init__(self, user_name, title, file_path, tags, publish_date, member_xhs: MemberXhs, content=None,
                  headless=False):
+        # 使用全局配置实例
+        xhs_cookie_path = Path(str(config.get("paths.base_dir"))) / "cookies" / "xiaohongshu"
+        
         # 初始化笔记标题
         self.title = self._remove_links(title)
         # 初始化笔记内容
@@ -29,14 +33,14 @@ class XiaoHongShuImg(object):
         # 设置发布日期
         self.publish_date = publish_date
         # 设置cookie文件路径
-        self.cookie_file = Path(xhs_cookie_path, f"cookie-{user_name}.json")
+        self.cookie_file = Path(xhs_cookie_path) / f"cookie-{user_name}.json"
         # 定义日期格式
         self.date_format = '%Y年%m月%d日 %H:%M'
         self.headless = headless
         self.user_name = user_name
-        self.qr_path = f"{xhs_cookie_path}/{self.user_name}-qrcode.png"
+        self.qr_path = str(Path(xhs_cookie_path) / f"{self.user_name}-qrcode.png")
         self.member_xhs = member_xhs
-        self.local_executable_path = LOCAL_CHROME_PATH
+        self.local_executable_path = config.get("paths.local_chrome_path")
 
     async def cookie_auth(self):
         async with async_playwright() as playwright:

@@ -1,40 +1,41 @@
 """
-基础配置管理模块
+统一配置管理模块 - 基于TOML格式的集中配置管理
 """
 
-import json
 import os
-from typing import Dict, Any, Optional
+import tomllib
+import json
+from typing import Dict, Any, Optional, Union
 
 class BaseConfig:
-    """基础配置管理类"""
+    """统一配置管理类 - 支持TOML格式配置"""
     
-    def __init__(self, config_path: str = None):
+    def __init__(self, config_path: Optional[str] = None):
         """
         初始化配置管理器
         
         Args:
-            config_path: 配置文件路径，默认为项目根目录下的config.json
+            config_path: 配置文件路径，默认为项目根目录下的config.toml
         """
         if config_path is None:
             # 默认配置文件路径
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            config_path = os.path.join(project_root, 'config.json')
+            config_path = os.path.join(project_root, 'config.toml')
         
         self.config_path = config_path
         self._config = {}
         self.load_config()
     
     def load_config(self) -> None:
-        """加载配置文件"""
+        """加载TOML配置文件"""
         try:
             if os.path.exists(self.config_path):
                 with open(self.config_path, 'r', encoding='utf-8') as f:
-                    self._config = json.load(f)
+                    self._config = tomllib.loads(f.read())
             else:
                 # 创建默认配置
                 self._config = self.get_default_config()
-                self.save_config()
+                print(f"配置文件不存在，已创建默认配置: {self.config_path}")
         except Exception as e:
             print(f"加载配置文件失败: {e}")
             self._config = self.get_default_config()
@@ -61,7 +62,7 @@ class BaseConfig:
             },
             "logging": {
                 "level": "INFO",
-                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                "format": "%(asctime)s - %(name)s - %(message)s",
                 "file_path": "logs/spider.log"
             },
             "spider": {
@@ -123,6 +124,22 @@ class BaseConfig:
     def get_spider_config(self) -> Dict[str, Any]:
         """获取爬虫配置"""
         return self.get('spider', {})
+    
+    def get_x_config(self) -> Dict[str, Any]:
+        """获取X平台配置"""
+        return self.get('x', {})
+    
+    def get_sms_config(self) -> Dict[str, Any]:
+        """获取短信配置"""
+        return self.get('sms', {})
+    
+    def get_server_config(self) -> Dict[str, Any]:
+        """获取服务器配置"""
+        return self.get('server', {})
+    
+    def get_api_config(self) -> Dict[str, Any]:
+        """获取API配置"""
+        return self.get('api', {})
     
     def update(self, config_dict: Dict[str, Any]) -> None:
         """

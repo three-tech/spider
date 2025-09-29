@@ -11,9 +11,9 @@ from selenium.webdriver.common.by import By  # 找元素时用
 from tornado import concurrent
 
 from driver import init_chrome_driver
-from utils.logs import create_zhiwang_logger
+from base.logger import get_logger
 
-logger = create_zhiwang_logger('spider')
+logger = get_logger('zhiwang')
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 PATH_ZHIWANG = os.path.join(PROJECT_ROOT, 'data', 'zhiwang.csv')

@@ -21,14 +21,14 @@ sys.path.insert(0, x_module_path)
 job_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, job_path)
 
-from scheduler import XSpiderScheduler
+from .scheduler import XSpiderScheduler
 from base.logger import get_logger
 
 def main():
     """主函数"""
     logger = get_logger(__name__)
     parser = argparse.ArgumentParser(description='X平台爬虫定时任务调度器')
-    parser.add_argument('--config', '-c', default='../x/config.json', help='配置文件路径')
+    parser.add_argument('--config', '-c', default=None, help='配置文件路径（向后兼容，现在通过ConfigManager统一管理）')
     parser.add_argument('--list-jobs', action='store_true', help='列出所有定时任务')
     parser.add_argument('--run-now', action='store_true', help='立即执行一次爬取任务')
     parser.add_argument('--daemon', '-d', action='store_true', help='以守护进程模式运行')
