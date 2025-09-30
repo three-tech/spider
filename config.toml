@@ -78,14 +78,14 @@ secret = ""
 
 [x]
 current_user_screen_name = "4vR2d"
-users = ["wraproundsgezv"]
+users = ["chudai_jav_xunm"]
 max_tweets_per_user = 800
 output_format = "database"
 output_file = "data/x/tweets.json"
 delay_between_requests = 5
 content_type = "tweets"
 force_refresh = false
-auth_token = "c1fbc939d2cfb78bb4227dba51031f2327f79808"
+auth_token = "780fc99a00ec1fbe83e59df7415ddf1919dbda16"
 
 [x.headers]
 User-Agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"

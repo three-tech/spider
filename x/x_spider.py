@@ -390,66 +390,6 @@ class XSpider:
             # 返回当前时间作为备选
             return datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
-    def tweet_cursor_generator(self, user_id: str, limit: int = 50, content_type: str = 'tweets') -> Generator[
-        Dict[str, Any], None, None]:
-        """分页生成器 - 模拟API分页请求"""
-        cursor = None
-        count = 0
-        empty_count = 0
-        page_count = 0
-
-        while count < limit:
-            page_count += 1
-            logging.info(f"\n=== 第 {page_count} 次请求 ===")
-            logging.info(f"⏱️ 请求时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            logging.info(f"🎯 目标用户ID: {user_id}")
-
-            if cursor:
-                logging.info(f"📍 当前游标: {cursor}")
-
-            # 请求间隔
-            if page_count > 1:
-                x_config = self.config.get('x', {})
-                interval = x_config.get("delay_between_requests", 2)
-                logging.info(f"⏸️ 等待 {interval} 秒...")
-                time.sleep(interval)
-
-            # 真实API请求
-            try:
-                response_data = self.api_request_tweets(user_id, cursor, content_type)
-                tweets = response_data.get('data', [])
-                new_cursor = response_data.get('cursor')
-
-                logging.info(f"🔄 获取到 {len(tweets)} 条推文")
-
-                if len(tweets) == 0:
-                    empty_count += 1
-                    logging.info(f"❌ 空数据计数: {empty_count}/3")
-                    if empty_count >= 3:
-                        logging.info("⏹️ 终止原因：连续3次空响应")
-                        break
-                else:
-                    empty_count = 0
-
-                # 处理数据
-                for item in tweets:
-                    yield item
-                    count += 1
-                    if count >= limit:
-                        logging.info(f"⏹️ 终止原因：达到数量限制（{limit}）")
-                        return
-
-                cursor = new_cursor
-                if not cursor:
-                    logging.info("⏹️ 终止原因：无更多数据")
-                    break
-
-            except Exception as e:
-                logging.error(f"API请求失败: {e}")
-                break
-
-        logging.info(f"📌 累计已处理: {count} 条")
-
     def api_request_tweets(self, user_id: str, cursor: Optional[str], content_type: str) -> Dict[str, Any]:
         """真实的API请求 - 获取用户推文"""
         try:
@@ -555,31 +495,96 @@ class XSpider:
 
     def _process_tweets_with_incremental_crawl(self, user_info: Dict[str, Any],
                                                crawl_config: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """处理推文数据，支持增量爬取"""
+        """
+        处理推文数据，支持增量爬取，并每页数据处理后立即存入数据库。
+        """
         all_tweets = []
         new_tweets_count = 0
         latest_tweet_time = None
         last_tweet_time = crawl_config.get("last_tweet_time")
+        content_type = crawl_config.get("content_type", "tweets")
+        limit = crawl_config.get("max_tweets", 50)
 
-        for item in self.tweet_cursor_generator(user_info['userId'],
-                                                crawl_config["max_tweets"],
-                                                crawl_config["content_type"]):
+        # --- Paging logic start (moved from tweet_cursor_generator) ---
+        cursor = None
+        processed_count = 0
+        empty_page_count = 0
+        page_num = 0
+        stop_crawling = False
 
-            # 处理单个推文项目
-            tweet_data = self._process_single_tweet_item(item, user_info, crawl_config)
-            if not tweet_data:
-                continue
+        while processed_count < limit and not stop_crawling:
+            page_num += 1
+            self.logger.info(f"\n=== 正在请求第 {page_num} 页数据 ===", user_id=user_info['userId'], cursor=cursor)
 
-            # 检查是否应该停止爬取
-            if self._should_stop_crawling(tweet_data, last_tweet_time, latest_tweet_time):
+            if page_num > 1:
+                interval = self.config.get('x', {}).get("delay_between_requests", 2)
+                self.logger.info(f"⏸️ 等待 {interval} 秒...")
+                time.sleep(interval)
+
+            try:
+                response_data = self.api_request_tweets(user_info['userId'], cursor, content_type)
+                page_items = response_data.get('data', [])
+                cursor = response_data.get('cursor')
+                self.logger.info(f"🔄 本页获取到 {len(page_items)} 条原始推文")
+            except Exception as e:
+                self.logger.error("API请求失败，终止当前用户爬取", error=str(e))
                 break
 
-            # 更新统计信息
-            all_tweets.append(tweet_data)
-            new_tweets_count = self._update_new_tweets_count(tweet_data, last_tweet_time, new_tweets_count)
-            latest_tweet_time = self._update_latest_tweet_time(tweet_data, latest_tweet_time)
+            if not page_items:
+                empty_page_count += 1
+                self.logger.warning(f"❌ 页面数据为空，连续空页计数: {empty_page_count}/3")
+                if empty_page_count >= 3:
+                    self.logger.info("⏹️ 终止原因：连续3次空响应")
+                    break
+                continue  # Go to next page request
+            else:
+                empty_page_count = 0
 
-        logging.info(f"📊 处理完成 - 有效推文: {len(all_tweets)}, 新推文: {new_tweets_count}")
+            # --- Process items in the current page ---
+            processed_page_tweets = []
+            for item in page_items:
+                if processed_count >= limit:
+                    self.logger.info(f"⏹️ 终止原因：达到数量限制（{limit}）")
+                    stop_crawling = True
+                    break
+
+                tweet_data = self._process_single_tweet_item(item, user_info, crawl_config)
+                if not tweet_data:
+                    continue
+
+                if self._should_stop_crawling(tweet_data, last_tweet_time):
+                    stop_crawling = True
+                    break
+
+                processed_page_tweets.append(tweet_data)
+                processed_count += 1
+
+            # --- Save processed page to database ---
+            if processed_page_tweets:
+                self.logger.info(f"💾 正在保存本页的 {len(processed_page_tweets)} 条推文到数据库...")
+                try:
+                    if self.db_manager:
+                        saved_count = self.db_manager.save_tweets_batch(processed_page_tweets)
+                        self.logger.info(f"✅ 成功保存 {saved_count} 条推文。")
+                        all_tweets.extend(processed_page_tweets)
+
+                        # Update overall stats after successful save
+                        for tweet in processed_page_tweets:
+                            new_tweets_count = self._update_new_tweets_count(tweet, last_tweet_time,
+                                                                             new_tweets_count)
+                            latest_tweet_time = self._update_latest_tweet_time(tweet, latest_tweet_time)
+                    else:
+                        self.logger.error("数据库未初始化，无法保存推文。")
+
+                except Exception as e:
+                    self.logger.error("保存当前页面推文到数据库时出错", error=str(e))
+
+            if not cursor:
+                self.logger.info("⏹️ 终止原因：API返回无更多数据")
+                break
+        # --- Paging logic end ---
+
+        self.logger.info(f"📊 处理完成 - 总计有效推文: {len(all_tweets)}, 其中新推文: {new_tweets_count}")
         return all_tweets
 
     def _process_single_tweet_item(self, item: Dict[str, Any], user_info: Dict[str, Any],
@@ -594,8 +599,7 @@ class XSpider:
 
         return tweet_data if tweet_data else None
 
-    def _should_stop_crawling(self, tweet_data: Dict[str, Any], last_tweet_time: Optional[datetime],
-                              latest_tweet_time: Optional[datetime]) -> bool:
+    def _should_stop_crawling(self, tweet_data: Dict[str, Any], last_tweet_time: Optional[datetime]) -> bool:
         """判断是否应该停止爬取"""
         if not last_tweet_time:
             return False
@@ -648,10 +652,20 @@ class XSpider:
 
     def _save_and_update_crawl_info(self, screen_name: str, all_tweets: List[Dict[str, Any]],
                                     start_time: float, user_info: Dict[str, Any]):
-        """保存数据并更新爬取信息"""
-        # 保存推文到数据库
-        success_count = self.save_tweets_to_database(all_tweets) if all_tweets else 0
-        logging.info(f"✅ 成功保存 {success_count} 条推文到数据库")
+        """保存JSON备份并更新爬取信息"""
+        if not all_tweets:
+            self.logger.info("本次运行未获取到新推文。")
+            # 即使没有新推文，也更新爬取时间戳
+            self._update_crawl_info(screen_name, [])
+            self._log_processing_stats(screen_name, [], 0, start_time, user_info)
+            return
+
+        # 数据已在处理过程中分批存入数据库，此处仅执行补充操作
+        success_count = len(all_tweets)
+        self.logger.info(f"数据已分批存入数据库，共 {success_count} 条。")
+
+        # 补充操作：保存JSON备份
+        self.save_json_backup(all_tweets)
 
         # 更新爬取信息
         self._update_crawl_info(screen_name, all_tweets)
@@ -692,7 +706,7 @@ class XSpider:
 🎉 处理完成！
 ├── 用户：@{user_info['screenName']} (ID: {user_info['userId']})
 ├── 获取：{len(all_tweets)} 条有效推文
-├── 保存：{success_count} 条到数据库
+├── 保存：{success_count} 条到数据库 (分批处理)
 ├── 最新推文时间：{latest_tweet_time or '无'}
 ├── 耗时：{time_cost:.1f} 秒
         """)
