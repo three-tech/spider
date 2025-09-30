@@ -79,7 +79,7 @@ secret = ""
 [x]
 current_user_screen_name = "4vR2d"
 users = ["wraproundsgezv"]
-max_tweets_per_user = 50
+max_tweets_per_user = 800
 output_format = "database"
 output_file = "data/x/tweets.json"
 delay_between_requests = 5

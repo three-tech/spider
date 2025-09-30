@@ -17,7 +17,7 @@ class ResourceX(Base):
     __table_args__ = {'schema': 'resource'}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    screenName = Column('screenName', String(45), nullable=False, comment='用户名')
+    screenName = Column('screen_name', String(45), nullable=False, comment='用户名')
     images = Column('images', Text, comment='图片链接列表')
     videos = Column('videos', Text, comment='视频链接列表')
     tweetUrl = Column('tweetUrl', String(255), nullable=False, unique=True, comment='推文链接')
