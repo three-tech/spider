@@ -1,0 +1,103 @@
+# 统一配置文件 - 项目所有配置集中管理
+
+[database]
+host = "localhost"
+port = 3306
+user = "root"
+password = "123456"
+database = "resource"
+charset = "utf8mb4"
+
+[logging]
+# 基础配置
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+file_path = "logs/spider.log"
+
+# 高级配置
+[logging.advanced]
+# 日志轮转配置
+rotation = "10 MB"  # 文件大小达到10MB时轮转
+retention = "30 days"  # 保留30天的日志
+compression = "gz"  # 压缩格式
+
+# 日志级别配置
+[logging.levels]
+# 模块特定日志级别
+base = "INFO"
+x = "DEBUG"
+xiaohongshu = "INFO"
+sms = "WARNING"
+utils = "INFO"
+
+# 处理器配置
+[logging.handlers]
+# 控制台输出
+console_enabled = true
+console_level = "INFO"
+
+# 文件输出
+file_enabled = true
+file_level = "DEBUG"
+
+# 错误邮件通知（可选）
+email_enabled = false
+email_level = "ERROR"
+email_host = "smtp.example.com"
+email_port = 587
+email_username = ""
+email_password = ""
+email_to = ""
+
+# 结构化日志配置
+[logging.structured]
+enabled = true
+include_timestamp = true
+include_module = true
+include_function = true
+include_line_number = true
+
+[paths]
+base_dir = "/Users/xuzongxin/workspace/spider"
+local_chrome_path = "/Users/xuzongxin/Library/Caches/ms-playwright/chromium-1181/chrome-mac/Chromium.app/Contents/MacOS/Chromium"
+
+[xiaohongshu]
+server = "http://127.0.0.1:11901"
+file_path = "logs/spider.log"
+
+[spider]
+delay = 1
+timeout = 30
+retry_times = 3
+user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+
+[sms.feishu]
+enabled = false
+webhook_url = ""
+secret = ""
+
+[x]
+current_user_screen_name = "4vR2d"
+users = ["wraproundsgezv"]
+max_tweets_per_user = 50
+output_format = "database"
+output_file = "data/x/tweets.json"
+delay_between_requests = 5
+content_type = "tweets"
+force_refresh = false
+auth_token = "c1fbc939d2cfb78bb4227dba51031f2327f79808"
+
+[x.headers]
+User-Agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+
+[x.proxy]
+enabled = false
+http = "http://127.0.0.1:7890"
+https = "http://127.0.0.1:7890"
+
+[server]
+xhs_server = "http://127.0.0.1:11901"
+local_chrome_path = "/Users/xuzongxin/Library/Caches/ms-playwright/chromium-1181/chrome-mac/Chromium.app/Contents/MacOS/Chromium"
+
+[job]
+crawl_count = 20
