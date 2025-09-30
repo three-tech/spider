@@ -309,16 +309,30 @@ class XSpider:
 
     def _extract_retweet_media(self, item: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:
         """从转发源推文提取媒体"""
-        retweeted_status = self._safe_get(item, 'legacy.retweeted_status_result.result', {})
-        if not retweeted_status:
-            return None
-
-        # 尝试扩展媒体实体
-        retweet_media = self._safe_get(retweeted_status, 'legacy.extended_entities.media', [])
-        if not retweet_media:
-            retweet_media = self._safe_get(retweeted_status, 'legacy.entities.media', [])
-
-        return retweet_media if retweet_media else None
+        binding_values = self._safe_get(item, 'card.legacy.binding_values', [])
+        if not binding_values:
+            return []
+        binding_map = {binding_value['key']: binding_value['value'] for binding_value in binding_values}
+        if not binding_map:
+            return []
+        unified_card = binding_map.get('unified_card')
+        if not unified_card:
+            return []
+        media_entity = json.loads(json.dumps(unified_card))
+        retweet_media = []
+        entity_map = json.loads(media_entity['string_value'])
+        true_media_entity = entity_map.get('media_entities')  # type: ignore
+        if true_media_entity:
+            for media_id, media_data in true_media_entity.items():
+                if media_data['type'] == 'video':
+                    data = {
+                        "url": max(media_data['video_info']['variants'], key=lambda x: x.get('bitrate', 0))['url'],
+                        "type": media_data['type'],
+                        "duration": media_data['video_info']['duration_millis']
+                    }
+                    retweet_media.append(data)
+                    logging.debug(f"🎬 提取视频: {data}")
+        return retweet_media
 
     def _extract_images(self, media_items: List[Dict[str, Any]]) -> List[str]:
         """提取图片URL"""
@@ -335,24 +349,9 @@ class XSpider:
         """提取视频URL"""
         videos = []
         for media in media_items:
-            if media.get('type') in ['video', 'animated_gif']:
-                video_url = self._extract_best_video_url(media)
-                if video_url:
-                    videos.append(video_url)
+            if media.get('type') == 'video':
+                videos.append(media.get('url'))
         return videos
-
-    def _extract_best_video_url(self, media: Dict[str, Any]) -> Optional[str]:
-        """提取最佳质量的视频URL"""
-        video_info = media.get('video_info', {})
-        variants = video_info.get('variants', [])
-
-        mp4_variants = [v for v in variants if v.get('content_type') == 'video/mp4']
-        if not mp4_variants:
-            return None
-
-        best_variant = max(mp4_variants, key=lambda x: x.get('bitrate', 0))
-        logging.debug(f"🎬 提取视频: {best_variant['url'][:50]}...")
-        return best_variant['url']
 
     def _extract_urls(self, item: Dict[str, Any]) -> List[str]:
         """提取扩展URL"""
