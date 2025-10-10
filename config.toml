@@ -40,15 +40,6 @@ console_level = "INFO"
 file_enabled = true
 file_level = "DEBUG"
 
-# 错误邮件通知（可选）
-email_enabled = false
-email_level = "ERROR"
-email_host = "smtp.example.com"
-email_port = 587
-email_username = ""
-email_password = ""
-email_to = ""
-
 # 结构化日志配置
 [logging.structured]
 enabled = true
@@ -77,7 +68,8 @@ webhook_url = ""
 secret = ""
 
 [x]
-current_user_screen_name = "4vR2d"
+current_user_screen_name = "xuxx619318"
+auth_token = "c1fbc939d2cfb78bb4227dba51031f2327f79808" # 与current_user_screen_name保持配套
 users = ["chudai_jav_xunm"]
 max_tweets_per_user = 800
 output_format = "database"
@@ -85,7 +77,7 @@ output_file = "data/x/tweets.json"
 delay_between_requests = 5
 content_type = "tweets"
 force_refresh = false
-auth_token = "780fc99a00ec1fbe83e59df7415ddf1919dbda16"
+
 
 [x.headers]
 User-Agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -101,3 +93,6 @@ local_chrome_path = "/Users/xuzongxin/Library/Caches/ms-playwright/chromium-1181
 
 [job]
 crawl_count = 20
+
+
+

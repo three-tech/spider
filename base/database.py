@@ -4,11 +4,19 @@ from base.logger import get_logger
 logging = get_logger('database')
 from datetime import datetime
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, BigInteger
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, BigInteger, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import enum
 
 Base = declarative_base()
+
+
+class MediaTypeEnum(enum.Enum):
+    """媒体类型枚举"""
+    image = "image"
+    video = "video"
+    both = "both"
 
 
 class ResourceX(Base):
@@ -53,6 +61,7 @@ class MemberX(Base):
     last_tweet_time = Column('last_tweet_time', DateTime, nullable=True, comment='最新推文时间')
     account_created_at = Column('account_created_at', String(255), nullable=True, comment='账户创建时间')
     tags = Column('tags', Text, comment='标签列表，逗号分隔')
+    media_type = Column('media_type', Enum(MediaTypeEnum), default=MediaTypeEnum.video, comment='处理的媒体类型：image-图片,video-视频,both-两者都包括')
     raw_data = Column('raw_data', Text, nullable=True, comment='原始API数据JSON')
     create_time = Column('create_time', DateTime, nullable=False, default=datetime.now, comment='创建时间')
     update_time = Column('update_time', DateTime, nullable=False, default=datetime.now, onupdate=datetime.now,
@@ -478,7 +487,8 @@ class DatabaseManager:
                     'followers_count': member.followers_count,
                     'statuses_count': member.statuses_count,
                     'filter_quotes': member.filter_quotes,
-                    'process_retweets': member.process_retweets
+                    'process_retweets': member.process_retweets,
+                    'media_type': member.media_type.value if member.media_type else 'video'
                 })
             logging.info(f"获取到 {len(users)} 个关注的用户")
             return users

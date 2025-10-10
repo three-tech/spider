@@ -10,7 +10,7 @@ import os
 import sys
 import time
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Generator
+from typing import Dict, List, Optional, Any
 
 from x.x_auth_client import create_x_auth_client
 
@@ -165,8 +165,8 @@ class XSpider:
             return None
 
     def transform_tweet(self, item: Dict[str, Any], user_id: str, filter_retweets: bool = True,
-                        filter_quotes: bool = True) -> Optional[Dict[str, Any]]:
-        """转换推文数据 - 增强转发推文处理功能"""
+                        filter_quotes: bool = True, media_type: str = 'video') -> Optional[Dict[str, Any]]:
+        """转换推文数据 - 增强转发推文处理功能，支持媒体类型过滤"""
         try:
             # 快速失败检查
             if not self._should_process_tweet(item, filter_retweets, filter_quotes):
@@ -181,8 +181,14 @@ class XSpider:
             if not self._has_required_fields(user_info, full_text):
                 return None
 
-            # 提取媒体和URL
-            media_data = self._extract_media_data(item)
+            # 提取媒体和URL，根据媒体类型进行过滤
+            media_data = self._extract_media_data_with_filter(item, media_type)
+            
+            # 根据媒体类型过滤：如果用户只要特定类型的媒体，但推文没有该类型媒体，则跳过
+            if not self._should_include_tweet_by_media_type(media_data, media_type):
+                logging.debug(f"❌ 推文不包含所需媒体类型 {media_type}，跳过")
+                return None
+
             tweet_url = self._build_tweet_url(user_info, item)
 
             logging.info(f"✅ 转换成功: {tweet_url}")
@@ -275,6 +281,45 @@ class XSpider:
             "images": images,
             "videos": videos
         }
+
+    def _extract_media_data_with_filter(self, item: Dict[str, Any], media_type: str) -> Dict[str, List[str]]:
+        """根据媒体类型提取媒体数据"""
+        media_items = self._extract_all_media_items(item)
+        
+        # 根据媒体类型决定提取哪些媒体
+        images = []
+        videos = []
+        
+        if media_type == 'image' or media_type == 'both':
+            images = self._extract_images(media_items)
+            
+        if media_type == 'video' or media_type == 'both':
+            videos = self._extract_videos(media_items)
+
+        return {
+            "images": images,
+            "videos": videos
+        }
+
+    def _should_include_tweet_by_media_type(self, media_data: Dict[str, List[str]], media_type: str) -> bool:
+        """判断是否应该根据媒体类型包含该推文"""
+        has_images = bool(media_data.get("images"))
+        has_videos = bool(media_data.get("videos"))
+        
+        # 如果是both类型，只要有任一类型媒体就包含
+        if media_type == 'both':
+            return has_images or has_videos
+            
+        # 如果是image类型，必须有图片
+        if media_type == 'image':
+            return has_images
+            
+        # 如果是video类型，必须有视频
+        if media_type == 'video':
+            return has_videos
+            
+        # 默认包含
+        return True
 
     def _extract_all_media_items(self, item: Dict[str, Any]) -> List[Dict[str, Any]]:
         """提取所有媒体项目"""
@@ -462,19 +507,22 @@ class XSpider:
         process_retweets = bool(user_config.get("process_retweets", False))
         filter_retweets = not process_retweets
         filter_quotes = bool(user_config.get("filter_quotes", True))
+        media_type = user_config.get("media_type", "video")
 
         self.logger.info("应用用户级爬取配置",
                          username=screen_name,
                          process_retweets=process_retweets,
                          filter_retweets=filter_retweets,
-                         filter_quotes=filter_quotes)
+                         filter_quotes=filter_quotes,
+                         media_type=media_type)
 
         return {
             "max_tweets": self.config.get_x_config().get("max_tweets_per_user", 50),
             "filter_retweets": filter_retweets,
             "filter_quotes": filter_quotes,
             "content_type": "tweets",
-            "last_tweet_time": last_tweet_time
+            "last_tweet_time": last_tweet_time,
+            "media_type": media_type
         }
 
     def _get_last_crawl_time(self, screen_name: str) -> Optional[datetime]:
@@ -594,7 +642,8 @@ class XSpider:
             item,
             user_info['userId'],
             crawl_config["filter_retweets"],
-            crawl_config["filter_quotes"]
+            crawl_config["filter_quotes"],
+            crawl_config.get("media_type", "video")
         )
 
         return tweet_data if tweet_data else None
@@ -977,8 +1026,3 @@ class XSpider:
         except Exception as e:
             logging.error(f"同步关注列表时出错: {e}")
             return 0
-
-
-if __name__ == "__main__":
-    spider = XSpider()
-    spider.run()
