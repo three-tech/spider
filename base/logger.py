@@ -118,6 +118,11 @@ class LoggerManager:
             file_level = getattr(logging, handlers_config.get('file_level', 'DEBUG').upper())
             file_path = log_config.get('file_path', 'logs/spider.log')
             
+            # 确保使用项目根目录的绝对路径
+            if not os.path.isabs(file_path):
+                project_root = Path(__file__).parent.parent
+                file_path = project_root / file_path
+            
             # 确保日志目录存在
             log_dir = Path(file_path).parent
             log_dir.mkdir(parents=True, exist_ok=True)
@@ -191,6 +196,11 @@ class LoggerManager:
         if log_config.get('handlers', {}).get('file_enabled', True):
             file_path = log_config.get('file_path', 'logs/spider.log')
             file_level = log_config.get('handlers', {}).get('file_level', 'DEBUG')
+            
+            # 确保使用项目根目录的绝对路径
+            if not os.path.isabs(file_path):
+                project_root = Path(__file__).parent.parent
+                file_path = project_root / file_path
             
             loguru_logger.add(
                 file_path,
